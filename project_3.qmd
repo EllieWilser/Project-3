@@ -7,11 +7,112 @@ editor: visual
 ## Introduction
 
 ## Approach
+Project 3 will examine the relationship between weather and electricity load in New York City by combining data from the National Weather Service (NWS) and the New York Independent System Operator (NYISO). Team members will download data covering a shared time range, select relevant variables, and clean the datasets using R, addressing missing values, duplicates, inconsistent formats, and potential outliers.
+
+A PostgreSQL database will be designed to store the weather and electricity data, establish relationships between tables, and support joining the datasets for analysis. Using R, the team will calculate summary statistics, and create visualizations of weather and electricity load over time.
+
+The goal of this project is to explore the relationship between weather and electricity demand while applying practical and diverse skills and tools used by data scientists such as data acquisition, database management, data preparation, exploratory analysis, and visualization.
+
+Throughout the project, members will document data sources, cleaning approach, database design, and analysis methods by collaborating through a shared GitHub repository and Google Drive. Finally all members will review code and findings, and prepare a final presentation.
 
 ## Code
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+```
 ### Loading Weather Data (Member 1)
+## Select weather stations and date range
 
+```{r}
+# 1. Import the existing combined CSV file
+weather <- read_csv(
+  "D:/Cuny_sps/Data-607/Project-3/NOAA_Weather_All_Three_Stations.csv",
+  show_col_types = FALSE
+)
+```
+
+## Identify relevant variables (date, temperature, precipitation)
+
+```{r}
+# 2. Check the data
+print(dim(weather))
+print(names(weather))
+glimpse(weather)
+```
+
+## Import weather data into R
+
+```{r}
+# 3. Standardize data types and filter the date range
+weather_clean <- weather %>%
+  mutate(
+    STATION = as.character(STATION),
+    DATE = as.Date(
+      as.character(DATE),
+      tryFormats = c("%Y-%m-%d", "%m/%d/%Y")
+    ),
+    PRCP = as.numeric(PRCP),
+    TMAX = as.numeric(TMAX),
+    TMIN = as.numeric(TMIN),
+    STATION_NAME = as.character(STATION_NAME),
+    NYISO_ZONE = as.character(NYISO_ZONE)
+  ) %>%
+  filter(
+    DATE >= as.Date("2020-01-01"),
+    DATE <= as.Date("2026-09-30")
+  )
+```
+
+
+## Check missing values, duplicates, and inconsistent formats
+
+```{r}
+# 5. Check duplicate station-date records
+duplicates <- weather_clean %>%
+  count(STATION, DATE) %>%
+  filter(n > 1)
+
+cat("Duplicate station-date records:\n")
+print(duplicates)
+
+# 6. Remove exact duplicate rows only
+weather_clean <- weather_clean %>%
+  distinct()
+```
+
+
+# 7. Calculate average temperature, HDD, and CDD
+# Assumes TMAX and TMIN are in Fahrenheit.
+
+```{r}
+weather_clean <- weather_clean %>%
+  mutate(
+    TAVG = if_else(
+      !is.na(TMAX) & !is.na(TMIN),
+      (TMAX + TMIN) / 2,
+      NA_real_
+    ),
+    HDD = if_else(
+      !is.na(TAVG),
+      pmax(65 - TAVG, 0),
+      NA_real_
+    ),
+    CDD = if_else(
+      !is.na(TAVG),
+      pmax(TAVG - 65, 0),
+      NA_real_
+    )
+  ) %>%
+  arrange(DATE, NYISO_ZONE, STATION_NAME)
+
+# 8. Save as a NEW cleaned CSV file
+write_csv(
+  weather_clean,
+  "D:/Cuny_sps/Data-607/Project-3/NOAA_Weather_All_Three_Stations_Clean.csv",
+  na = ""
+)
+```
 ### Loading NYISO Electricity (Member 2)
 
 ### Database Design and Creation (Member 3)
