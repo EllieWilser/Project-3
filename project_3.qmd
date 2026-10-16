@@ -7,6 +7,7 @@ editor: visual
 ## Introduction
 
 ## Approach
+
 Project 3 will examine the relationship between weather and electricity load in New York City by combining data from the National Weather Service (NWS) and the New York Independent System Operator (NYISO). Team members will download data covering a shared time range, select relevant variables, and clean the datasets using R, addressing missing values, duplicates, inconsistent formats, and potential outliers.
 
 A PostgreSQL database will be designed to store the weather and electricity data, establish relationships between tables, and support joining the datasets for analysis. Using R, the team will calculate summary statistics, and create visualizations of weather and electricity load over time.
@@ -21,7 +22,9 @@ Throughout the project, members will document data sources, cleaning approach, d
 knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
 library(tidyverse)
 ```
+
 ### Loading Weather Data (Member 1)
+
 ## Select weather stations and date range
 
 ```{r}
@@ -64,7 +67,6 @@ weather_clean <- weather %>%
   )
 ```
 
-
 ## Check missing values, duplicates, and inconsistent formats
 
 ```{r}
@@ -81,8 +83,8 @@ weather_clean <- weather_clean %>%
   distinct()
 ```
 
-
 # 7. Calculate average temperature, HDD, and CDD
+
 # Assumes TMAX and TMIN are in Fahrenheit.
 
 ```{r}
@@ -113,7 +115,14 @@ write_csv(
   na = ""
 )
 ```
+
 ### Loading NYISO Electricity (Member 2)
+
+text
+
+```{r}
+#text
+```
 
 ### Database Design and Creation (Member 3)
 
