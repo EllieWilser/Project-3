@@ -116,12 +116,142 @@ write_csv(
 )
 ```
 
-### Loading NYISO Electricity (Member 2)
+### NYISO Electricity (Member 2)
 
-text
+#### Loading libraries
 
 ```{r}
-#text
+#Libraries needed for NYISO data
+library(httr)
+library(readr)
+library(dplyr)
+library(purrr)
+library(lubridate)
+```
+
+#### Downloading data files from NYISO
+
+First create folder
+
+```{r}
+# Create a folder for the downloaded ZIP files
+dir.create("nyiso_zips", showWarnings = FALSE)
+
+# Generate all months from January 2020 to September 2026
+months <- seq(
+  as.Date("2020-01-01"),
+  as.Date("2026-09-01"),
+  by = "month"
+)
+```
+
+Downloading, unzipping, and merging files, then filer for location; NYC and Long Island to be saved in all_data dataframe
+
+```{r}
+# Download the monthly ZIP files, read their CSVs,
+# and combine the selected electricity zones
+all_data <- map_dfr(months, function(month) {
+  
+  # Convert the month to a code such as 202001
+  month_code <- format(month, "%Y%m")
+  
+  # Construct the URL for the monthly ZIP file
+  url <- paste0(
+    "https://mis.nyiso.com/public/csv/pal/",
+    month_code, "01pal_csv.zip"
+  )
+  
+  # Create the local path and filename for this ZIP
+  zip_path <- file.path(
+    "nyiso_zips",
+    paste0(month_code, "pal_csv.zip")
+  )
+  
+  # Download the ZIP only if it is not already saved
+  if (!file.exists(zip_path)) {
+    response <- GET(
+      url,
+      write_disk(zip_path, overwrite = TRUE)
+    )
+    
+    # Stop if the download request fails
+    stop_for_status(response)
+  }
+  
+  # List the filenames inside the ZIP
+  csv_files <- unzip(zip_path, list = TRUE)$Name
+  
+  # Keep only CSV files
+  csv_files <- csv_files[
+    grepl("\\.csv$", csv_files, ignore.case = TRUE)
+  ]
+  
+  # Read and combine the CSV files for this month
+  map_dfr(csv_files, function(file) {
+    
+    read_csv(
+      unz(zip_path, file),
+      show_col_types = FALSE
+    ) |>
+      # Keep only New York City and Long Island
+      filter(Name %in% c("LONGIL", "N.Y.C."))
+  })
+})
+```
+
+Calculate daily average from 5-minute values and save as daily_load dataframe
+
+```{r}
+# Convert timestamps to dates and calculate daily average load
+daily_load <- all_data |>
+  # Convert the timestamp character strings to dates
+  mutate(
+    Date = as.Date(strptime(
+      `Time Stamp`,
+      format = "%m/%d/%Y %H:%M:%S"
+    ))
+  ) |>
+  # Group observations by date and electricity zone
+  group_by(Date, Name, PTID) |>
+  # Calculate the average of the available five-minute load values
+  summarise(
+    Daily_Average_Load = mean(Load, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  # Sort the results by date and zone
+  arrange(Date, Name)
+# Round daily average load to four decimal places
+daily_load <- daily_load |>
+  mutate(
+    Daily_Average_Load = round(Daily_Average_Load, 2)
+  )
+```
+
+Established time range Jan. 2020 to Sept. 2026 has 2,465 days in total. After checking for missing dates. there 7 records missing for each zone, 14 in total
+
+```{r}
+# Create a complete list of dates in the study period
+all_dates <- seq(
+  as.Date("2020-01-01"),
+  as.Date("2026-09-30"),
+  by = "day"
+)
+
+# Find dates missing from each zone
+daily_load |>
+  group_by(Name) |>
+  summarise(
+    Missing_Dates = list(setdiff(all_dates, Date)),
+    .groups = "drop"
+  )
+
+```
+
+Save CSV ready for analysis
+
+```{r}
+# Save daily_load as CSV
+write_csv(daily_load, "nyiso_daily_average_load.csv")
 ```
 
 ### Database Design and Creation (Member 3)
