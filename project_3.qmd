@@ -4,17 +4,80 @@ format: html
 editor: visual
 ---
 
-## Introduction
-
 ## Approach
+
+**Group Members:** Bikash Bhowmik, Cecilia De La Fuente Chavez, Ellie Wilser, Zaina Hassan
+
+**Tools for collaboration:** 
+
+- Slack
+
+- [Project_3_Energy_Task_Tracker](https://docs.google.com/spreadsheets/d/1LXvVno-vkfswrLjzSeUACgMw807ED2XciFtNPcDoug0/edit?gid=0#gid=0)
+
+- Github
+
+**Data:**
+
+- NYISO data: <https://mis.nyiso.com/public/P-58Blist.htm>
+
+- NOAA data: <https://www.weather.gov/wrh/Climate?wfo=okx>
+
+- Time Range: January 2020 to September 2026 
+
+- Locations: 
+
+|                      |                          |
+|----------------------|--------------------------|
+| **NYISO Zone**       | **NOAA Weather Station** |
+| NYC (Zone J)         | LaGuardia Airport        |
+| NYC (Zone J)         | Central Park             |
+| Long Island (Zone K) | Islip Airport            |
+
+**Overview**
 
 Project 3 will examine the relationship between weather and electricity load in New York City by combining data from the National Weather Service (NWS) and the New York Independent System Operator (NYISO). Team members will download data covering a shared time range, select relevant variables, and clean the datasets using R, addressing missing values, duplicates, inconsistent formats, and potential outliers.
 
-A PostgreSQL database will be designed to store the weather and electricity data, establish relationships between tables, and support joining the datasets for analysis. Using R, the team will calculate summary statistics, and create visualizations of weather and electricity load over time.
+A PostgreSQL database will be designed to store the weather and electricity data, establish relationships between tables, and support joining the datasets for analysis. Using R, the team will calculate summary statistics, and create visualizations of weather and electricity load over time. 
 
 The goal of this project is to explore the relationship between weather and electricity demand while applying practical and diverse skills and tools used by data scientists such as data acquisition, database management, data preparation, exploratory analysis, and visualization.
 
 Throughout the project, members will document data sources, cleaning approach, database design, and analysis methods by collaborating through a shared GitHub repository and Google Drive. Finally all members will review code and findings, and prepare a final presentation.
+
+**NYISO Dataset**
+
+The plan is to download monthly NYISO electricity load data from January 2020 through September 2026, and filter the data to include New York City (N.Y.C.) and Long Island (LONGIL). Duplicate records and missing values will be checked. Afterwards the timestamps will be converted to calendar dates and the five-minute observations aggregated into daily averages for each location, excluding NAs. The daily averages will be rounded to two decimal places for readability. The final dataset will be saved as a csv called “nyiso_daily_average_load”, ready to be integrated with the weather data and used for further analysis.
+
+NYISO Dataset: 4,916 rows covering January 1, 2020, through September 30, 2026, with the columns Date, Name, PTID, and Daily_Average_Load. 14 missing Load values were found and excluded.
+
+**Weather Dataset**
+
+The plan is to collect daily weather data from NOAA for January 2020 through September 2026 from three stations: LaGuardia Airport, Central Park for NYC (Zone J), and Islip Airport for Long Island (Zone K). Relevant variables will include **daily average, min/max temperature, and precipitation**.
+
+The data will be cleaned using R to address missing values, duplicate records, inconsistent date formats, and potential outliers. Dates will be standardized to match the NYISO electricity load dataset. The cleaned weather data will be saved as a CSV file and integrated with the daily electricity load data to explore relationships between weather conditions and electricity demand.
+
+The NOAA weather dataset combines observations from three stations: LaGuardia Airport, Central Park, and Islip Airport, covering 7,395 records. Three new columns were added: **TAVG** (average temperature), **HDD** (heating degree days), and **CDD** (cooling degree days). The data was processed in R, and the cleaned dataset was saved as a new CSV file for integration with the NYISO electricity load data.
+
+**Database Design** 
+
+After the NYISO and weather data are cleaned and prepared for analysis, new normalized tables will be structured to satisfy the following criteria:
+
+- 1NF: Each table cell must contain a single, atomic (indivisible) value, and every record must be unique.
+
+- 2NF: The table must already be in 1NF, and every non-key column must depend on the entire primary key (no partial dependencies).
+
+- 3NF: The table must already be in 2NF, and there must be no transitive dependencies.
+
+Accompanying the normalized tables, an entity-relationship diagram (ERD) will be created to visualize the database structure and attribute details. This will be accomplished using Mermaid code blocks embedded directly within Quarto documents to render the diagrams from text.
+
+Once the tables are normalized and documented, they will be loaded into a PostgreSQL server, ensuring the schema defined in the ERD is directly reflected in the SQL table creation scripts.
+
+**Analysis**
+
+The analysis will be conducted using R and the packages within such as dplyr, tidyr, and ggplot2. These packages are the foundation for data manipulation, summary statistics, and visualization. Once the weather and electricity datasets have been cleaned and integrated, we will explore the relationship between weather conditions and electricity load in New York City. Since the weather data is recorded daily, electricity load observations will be aggregated to a daily level to allow for consistent comparisons.
+
+	The analysis will begin by calculating descriptive statistics, including mean, minimum, and maximum electricity load, temperature, and precipitation. Then time series visualizations will be created to examine changes in electricity demand and weather conditions over time. Scatterplots will be used to explore the relationship between temperature and electricity load, while additional comparisons may examine seasonal patterns and differences in demand during warmer and colder periods.
+
+	Throughout the analysis, we will examine missing values and potential outliers to determine whether they reflect data quality issues or meaningful observations, such as extreme weather events. Our findings will focus on identifying trends, patterns, and possible associations rather than establishing causation. The results will be summarized through visualizations and descriptive statistics, with consideration given to limitations in the datasets and analysis.
 
 ## Code
 
