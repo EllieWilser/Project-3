@@ -37,7 +37,10 @@ ul.task-list li input[type="checkbox"] {
 <link href="Approach_Project3_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="Approach_Project3_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Approach_Project3_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Approach_Project3_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="Approach_Project3_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="Approach_Project3_files/libs/quarto-diagram/mermaid.min.js"></script>
+<script src="Approach_Project3_files/libs/quarto-diagram/mermaid-init.js"></script>
+<link href="Approach_Project3_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -134,6 +137,62 @@ ul.task-list li input[type="checkbox"] {
 <p>The analysis will be conducted using R and the packages within such as dplyr, tidyr, and ggplot2. These packages are the foundation for data manipulation, summary statistics, and visualization. Once the weather and electricity datasets have been cleaned and integrated, we will explore the relationship between weather conditions and electricity load in New York City. Since the weather data is recorded daily, electricity load observations will be aggregated to a daily level to allow for consistent comparisons.</p>
 <p>The analysis will begin by calculating descriptive statistics, including mean, minimum, and maximum electricity load, temperature, and precipitation. Then time series visualizations will be created to examine changes in electricity demand and weather conditions over time. Scatterplots will be used to explore the relationship between temperature and electricity load, while additional comparisons may examine seasonal patterns and differences in demand during warmer and colder periods.</p>
 <p>Throughout the analysis, we will examine missing values and potential outliers to determine whether they reflect data quality issues or meaningful observations, such as extreme weather events. Our findings will focus on identifying trends, patterns, and possible associations rather than establishing causation. The results will be summarized through visualizations and descriptive statistics, with consideration given to limitations in the datasets and analysis.</p>
+</section>
+<section id="er-diagram" class="level2">
+<h2 class="anchored" data-anchor-id="er-diagram">ER Diagram</h2>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-erd" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-erd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-erd">erDiagram
+    zone ||--o{ weather_station : "has"
+    zone ||--o{ daily_electricity_load : "has"
+    weather_station ||--o{ daily_weather : "records"
+
+    zone {
+        int ptid PK
+        text nyiso_zone_name
+        text noaa_zone_name
+    }
+
+    weather_station {
+        text station_id PK
+        text noaa_station_name
+        int ptid FK
+    }
+
+    daily_electricity_load {
+        int ptid PK, FK
+        date load_date PK
+        numeric avg_load
+    }
+
+    daily_weather {
+        text station_id PK, FK
+        date obs_date PK
+        numeric prcp
+        numeric tmax
+        numeric tmin
+    }
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-erd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Normalized schema for NYISO load and NOAA weather data
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The ER diagram above is how the data will be structured and loaded into a PostgreSQL server. The database meets the first 3 normal forms.</p>
+<ul>
+<li><p>1NF: Each record in the database in unique, and none can be split apart.</p></li>
+<li><p>2NF: Each non-key attribute depends on the key attributes.</p></li>
+<li><p>3NF: There are no transitive dependencies.</p></li>
+</ul>
+<p>Listed in the ER Diagram is the data types of each attributes we plan to use, and the key types we will be assigning in PostgreSQL.</p>
 </section>
 
 </main>
