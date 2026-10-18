@@ -119,7 +119,7 @@ erDiagram
 
 The ER diagram above is how the data will be structured and loaded into a PostgreSQL server. The database meets the first 3 normal forms.
 
-- 1NF: Each record in the database in unique, and none can be split apart.
+- 1NF: Each record in the database is unique, and none can be split apart.
 
 - 2NF: Each non-key attribute depends on the key attributes.
 
