@@ -1,7 +1,14 @@
 ---
 title: "Approach_Project3"
 author: "Energy Group"
-format: html
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: left
+    toc-depth: 3
 editor: visual
 ---
 
