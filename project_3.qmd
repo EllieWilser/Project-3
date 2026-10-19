@@ -1,6 +1,15 @@
 ---
-title: "Project 3"
-format: html
+title: "Weather and Electricity Demand: A Data Analysis of New York City and Long Island (2020–2026)"
+author: "Energy Team"
+format:
+  html:
+    embed-resources: true
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: left
+    toc-depth: 3
 editor: visual
 ---
 
@@ -75,9 +84,11 @@ Once the tables are normalized and documented, they will be loaded into a Postgr
 
 The analysis will be conducted using R and the packages within such as dplyr, tidyr, and ggplot2. These packages are the foundation for data manipulation, summary statistics, and visualization. Once the weather and electricity datasets have been cleaned and integrated, we will explore the relationship between weather conditions and electricity load in New York City. Since the weather data is recorded daily, electricity load observations will be aggregated to a daily level to allow for consistent comparisons.
 
-	The analysis will begin by calculating descriptive statistics, including mean, minimum, and maximum electricity load, temperature, and precipitation. Then time series visualizations will be created to examine changes in electricity demand and weather conditions over time. Scatterplots will be used to explore the relationship between temperature and electricity load, while additional comparisons may examine seasonal patterns and differences in demand during warmer and colder periods.
+```         
+The analysis will begin by calculating descriptive statistics, including mean, minimum, and maximum electricity load, temperature, and precipitation. Then time series visualizations will be created to examine changes in electricity demand and weather conditions over time. Scatterplots will be used to explore the relationship between temperature and electricity load, while additional comparisons may examine seasonal patterns and differences in demand during warmer and colder periods.
 
-	Throughout the analysis, we will examine missing values and potential outliers to determine whether they reflect data quality issues or meaningful observations, such as extreme weather events. Our findings will focus on identifying trends, patterns, and possible associations rather than establishing causation. The results will be summarized through visualizations and descriptive statistics, with consideration given to limitations in the datasets and analysis.
+Throughout the analysis, we will examine missing values and potential outliers to determine whether they reflect data quality issues or meaningful observations, such as extreme weather events. Our findings will focus on identifying trends, patterns, and possible associations rather than establishing causation. The results will be summarized through visualizations and descriptive statistics, with consideration given to limitations in the datasets and analysis.
+```
 
 ## Code
 
