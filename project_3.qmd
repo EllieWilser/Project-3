@@ -104,7 +104,7 @@ library(tidyverse)
 ```{r}
 # 1. Import the existing combined CSV file
 weather <- read_csv(
-  "D:/Cuny_sps/Data-607/Project-3/NOAA_Weather_All_Three_Stations.csv",
+  "https://raw.githubusercontent.com/EllieWilser/Project-3/refs/heads/main/NOAA_Weather_All_Three_Stations.csv",
   show_col_types = FALSE
 )
 ```
@@ -185,7 +185,7 @@ weather_clean <- weather_clean %>%
 # 8. Save as a NEW cleaned CSV file
 write_csv(
   weather_clean,
-  "D:/Cuny_sps/Data-607/Project-3/NOAA_Weather_All_Three_Stations_Clean.csv",
+  "NOAA_Weather_All_Three_Stations_Clean.csv",
   na = ""
 )
 ```
@@ -219,7 +219,7 @@ months <- seq(
 )
 ```
 
-Downloading, unzipping, and merging files, then filer for location; NYC and Long Island to be saved in all_data dataframe
+Downloading, unzipping, and merging files, then filer for location; NYC and Long Island to be saved in all_data dataframe.
 
 ```{r}
 # Download the monthly ZIP files, read their CSVs,
