@@ -330,6 +330,68 @@ write_csv(daily_load, "nyiso_daily_average_load.csv")
 
 ### Database Design and Creation (Member 3)
 
+```{mermaid}
+%%| label: fig-erd
+%%| fig-cap: "Normalized schema for NYISO load and NOAA weather data"
+erDiagram
+    zone ||--o{ weather_station : "has"
+    zone ||--o{ daily_electricity_load : "has"
+    weather_station ||--o{ daily_weather : "records"
+
+    zone {
+        int ptid PK
+        text nyiso_zone_name
+        text noaa_zone_name
+    }
+
+    weather_station {
+        text station_id PK
+        text noaa_station_name
+        int ptid FK
+    }
+
+    daily_electricity_load {
+        int ptid PK, FK
+        date load_date PK
+        numeric avg_load
+    }
+
+    daily_weather {
+        text station_id PK, FK
+        date obs_date PK
+        numeric prcp
+        numeric tmax
+        numeric tmin
+    }
+```
+
+The ER diagram above is how the data will be structured and loaded into a PostgreSQL server. The database meets the first 3 normal forms.
+
+- 1NF: Each record in the database is unique, and none can be split apart.
+
+- 2NF: Each non-key attribute depends on the key attributes.
+
+- 3NF: There are no transitive dependencies.
+
+Listed in the ER Diagram is the data types of each attributes we plan to use, and the key types we will be assigning in PostgreSQL.
+
+First, a connection was established to a local database that can be change for reproducibility.
+
+```{r Connecting to PostgreSQL}
+library(DBI)
+library(RPostgres)
+
+# Change information to your database
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname   = "project_3",
+  user     = "postgres"
+)
+
+```
+
+Next, the normalized tables were formed from the cleaned data files in step 1 and 2.
+
 ### Analysis (Member 4)
 
 ## Conclusion
