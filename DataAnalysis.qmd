@@ -3,11 +3,11 @@ title: "DataAnalysis"
 format: html
 ---
 
-## Exploratory Data Analysis 
+# Exploratory Data Analysis 
 
-### 1. Load Libraries and Datasets
+## Load Libraries and Datasets
 
-Prepare weather data
+### Prepare weather data
 ```{r}
 library(tidyverse)
 library(lubridate)
@@ -36,13 +36,48 @@ names(electricity)
 glimpse(weather)
 glimpse(electricity)
 ```
-Join weather and electricity data
+
+```{r}
+### Prepare Daily Weather Data
+weather_daily <- weather %>%
+  mutate(
+    TAVG = (TMAX + TMIN) / 2,
+    Zone = case_when(
+      NYISO_ZONE == "NYC" ~ "NYC",
+      NYISO_ZONE == "Long Island" ~ "LI",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  group_by(DATE, Zone) %>%
+  summarise(
+    TAVG = mean(TAVG, na.rm = TRUE),
+    PRCP = mean(PRCP, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    HDD = pmax(65 - TAVG, 0),
+    CDD = pmax(TAVG - 65, 0)
+  )
+
+# Verify weather data
+glimpse(weather_daily)
+```
+
+### Join weather and electricity data
 ```{r}
 # Join electricity and weather data
+# Standardize electricity region names and join with weather data
 combined_data <- electricity %>%
   rename(
     DATE = Date,
     Zone = Name
+  ) %>%
+  mutate(
+    Zone = case_when(
+      Zone == "N.Y.C." ~ "NYC",
+      Zone == "LONGIL" ~ "LI",
+      TRUE ~ NA_character_
+    )
   ) %>%
   left_join(
     weather_daily,
@@ -51,16 +86,14 @@ combined_data <- electricity %>%
   ) %>%
   arrange(DATE, Zone)
 
-# Check combined dataset
-glimpse(combined_data)
+# Verify results
+combined_data %>% count(Zone)
 
-# Check number of records
-nrow(combined_data)
-
-# Check missing values
 colSums(is.na(combined_data))
 ```
+
 Verify Results 
+
 ```{r}
 combined_data %>%
   count(Zone)
@@ -73,7 +106,9 @@ combined_data %>%
     .groups = "drop"
   )
 ```
+
 Calculate Descriptive Stats 
+
 ```{r}
 summary_stats <- combined_data %>%
   group_by(Zone) %>%
@@ -93,7 +128,7 @@ summary_stats <- combined_data %>%
 
 print(summary_stats)
 ```
-Time series Plot for Electricity Demand over time 
+### Time series Plot for Electricity Demand over time 
 ```{r}
 ggplot(combined_data,
        aes(x = DATE,
@@ -111,16 +146,14 @@ ggplot(combined_data,
 ```
 ### Electricity Load Over Time Findings
 
-The time-series visualization illustrates daily average electricity load in New York City and Long Island from January 2020 through September 2026. Both regions exhibit recurring seasonal fluctuations, with noticeable increases in electricity demand during the summer months. These patterns may be associated with increased electricity consumption for air conditioning during warmer weather.
+The time series visualization illustrates daily average electricity load in New York City and Long Island from January 2020 through September 2026. Both regions exhibit recurring seasonal fluctuations, with noticeable increases in electricity demand during the summer months. These patterns may be associated with increased electricity consumption for air conditioning during warmer weather.
 
 New York City consistently exhibits higher electricity load than Long Island, with an average daily load of approximately 5,655 MW compared with 2,291 MW. NYC also shows greater absolute variability in demand, with a standard deviation of approximately 955 MW compared with 516 MW for Long Island.
 
 Although the two regions differ in overall electricity demand, their seasonal patterns appear similar. Further analysis of temperature and electricity load will help determine whether these seasonal increases are associated with warmer weather.
 
-Temperature vs Electricity Load
+### Temperature vs Electricity Load
 ```{r}
-### Temperature vs. Electricity Load
-
 ggplot(combined_data,
        aes(x = TAVG, y = Daily_Average_Load)) +
   geom_point(alpha = 0.25, color = "steelblue") +
@@ -135,7 +168,7 @@ ggplot(combined_data,
   ) +
   theme_minimal()
 ```
-### Temperature and Electricity Load — Findings
+### Temperature and Electricity Load Analysis
 
 The scatterplots reveal a nonlinear, U-shaped relationship between average daily temperature and electricity load in both New York City and Long Island. Electricity demand is lowest at moderate temperatures, approximately 50–60°F, and increases as temperatures become either colder or warmer.
 
@@ -143,7 +176,7 @@ The increase in electricity load at higher temperatures is particularly pronounc
 
 Despite differences in overall electricity demand, both regions exhibit similar temperature-related patterns. These findings suggest that temperature is associated with electricity demand, although other factors, including seasonal activity, population, and energy consumption patterns, may also contribute to the observed variation.
 
-Heating and Cooling Degree Days
+### Heating and Cooling Degree Days
 ```{r}
 # Prepare heating and cooling degree day data
 degree_day_summary <- combined_data %>%
@@ -174,8 +207,8 @@ ggplot(degree_day_summary,
        aes(x = Degree_Day_Bin, y = Average_Load)) +
   geom_line(color = "steelblue", linewidth = 1.2) +
   geom_point(color = "steelblue", size = 2) +
-facet_grid(Zone ~ Type, scales = "free")
-labs(
+  facet_grid(Zone ~ Type, scales = "free") +
+  labs(
     title = "Electricity Demand and Temperature Extremes",
     subtitle = "Average daily load by heating and cooling degree days",
     x = "Degree Days (°F-days, grouped in intervals of 5)",
@@ -188,15 +221,15 @@ labs(
     plot.title = element_text(face = "bold")
   )
 ```
-### Heating and Cooling Degree Days 
+### Heating and Cooling Degree Days Analysis
 
 The visualization examines the relationship between electricity load and heating and cooling degree days in New York City and Long Island. Both regions demonstrate increasing electricity demand as cooling degree days rise, indicating a strong association between warmer temperatures and higher electricity load.
 
-Heating degree days also show a positive relationship with electricity demand, although the increase is more gradual compared with cooling degree days. This suggests that electricity demand may be more sensitive to cooling requirements during warmer weather than to heating requirements during colder weather.
+The relationship between heating degree days and electricity demand appears more complex than the cooling related relationship. Although some colder conditions are associated with elevated electricity demand in the degree day visualization, the overall Pearson correlations for heating degree days were negative in both regions. This suggests that the relationship varies across temperature ranges and may be influenced by the substantially higher electricity demand observed during summer.
 
-Overall, the findings demonstrate that temperature extremes are associated with higher electricity demand in both regions, with cooling-related demand showing a particularly pronounced pattern. These results are consistent with the nonlinear relationship observed in the earlier temperature-versus-electricity-load scatterplots.
+The findings demonstrate that temperature extremes are associated with higher electricity demand in both regions, with cooling-related demand showing a particularly pronounced pattern. These results are consistent with the nonlinear relationship observed in the earlier temperature-versus-electricity-load scatterplots.
 
-Seasonal Electricity Demand
+### Seasonal Electricity Demand
 ```{r}
 # Assign seasons based on calendar month
 seasonal_data <- combined_data %>%
@@ -241,7 +274,7 @@ ggplot(seasonal_summary,
     panel.grid.major.x = element_blank()
   )
 ```
-### Seasonal Electricity Demand 
+### Seasonal Electricity Demand Analysis
 
 The seasonal comparison shows that electricity demand varies throughout the year in both New York City and Long Island. Summer has the highest average electricity load in both regions, followed by winter, fall, and spring.
 
@@ -249,7 +282,7 @@ The higher summer demand is consistent with the temperature-related patterns ide
 
 New York City consistently exhibits higher average electricity load than Long Island across all four seasons. Despite this difference, both regions follow similar seasonal patterns, suggesting that seasonal weather conditions are associated with electricity demand in both locations.
 
-Electricity Load Outlier Analysis
+### Electricity Load Outlier Analysis
 
 ```{r}
 # Calculate outlier thresholds separately for each region
@@ -283,18 +316,6 @@ outlier_data %>%
   arrange(desc(Daily_Average_Load)) %>%
   head(15)
 ```
-Check how many outliers were identified in each region
-```{r}
-outlier_data %>%
-  group_by(Zone) %>%
-  summarise(
-    Total_Observations = n(),
-    Outliers = sum(Outlier, na.rm = TRUE),
-    Outlier_Percent = round(
-      mean(Outlier, na.rm = TRUE) * 100, 2
-    ),
-    .groups = "drop"
-```
 Check how many flagged observations are associated with particularly warm days
 ```{r}
 outlier_data %>%
@@ -327,9 +348,9 @@ The analysis identified 105 high-load outliers in NYC (4.27% of observations) an
 
 Of the 105 NYC outliers, 101 (96.2%) occurred on days with average temperatures of at least 80°F. Similarly, 75 of Long Island's 108 outliers (69.4%) occurred on days meeting this temperature threshold. No flagged observations occurred on days with average temperatures at or below 32°F.
 
-These findings indicate that unusually high electricity demand frequently coincides with hot weather, particularly in NYC. The observations are consistent with increased cooling-related electricity demand during warmer periods. Because these values may represent legitimate demand peaks rather than data errors, they will be retained for the analysis.
+These findings indicate that unusually high electricity demand frequently coincides with hot weather, particularly in NYC. The observations are consistent with increased cooling related electricity demand during warmer periods. Because these values may represent legitimate demand peaks rather than data errors, they will be retained for the analysis.
 
-Precipitation Analysis
+### Precipitation and Electricity Load
 ```{r}
 # Compare electricity load on dry and rainy days
 precip_summary <- combined_data %>%
@@ -362,9 +383,107 @@ ggplot(precip_summary,
   theme_minimal() +
   theme(legend.position = "none")
 ```
-### Precipitation and Electricity Load 
+### Precipitation and Electricity Load Analysis
 The analysis compared average daily electricity load between dry days, defined as days with no recorded precipitation, and rainy days, defined as days with recorded precipitation greater than zero.
 
 The results show minimal differences in average electricity load between dry and rainy days in both New York City and Long Island. While NYC exhibits a slightly higher average load on rainy days, the difference is relatively small. Long Island shows almost no noticeable difference between the two categories.
 
 Compared with the stronger relationships observed between temperature and electricity load, precipitation occurrence appears to have a weaker association with daily electricity demand. However, this comparison does not account for rainfall intensity, seasonal patterns, or temperature differences between rainy and dry days.
+
+### Correlation of Weather and Electricity Demand
+
+```{r}
+# Calculate correlations separately for NYC and LI
+correlation_results <- combined_data %>%
+  group_by(Zone) %>%
+  summarise(
+    Correlation_HDD = round(
+      cor(HDD, Daily_Average_Load, use = "complete.obs"),
+      3
+    ),
+    Correlation_CDD = round(
+      cor(CDD, Daily_Average_Load, use = "complete.obs"),
+      3
+    ),
+    Correlation_PRCP = round(
+      cor(PRCP, Daily_Average_Load, use = "complete.obs"),
+      3
+    ),
+    .groups = "drop"
+  )
+
+print(correlation_results)
+```
+
+```{r}
+# Prepare correlations for visualization
+correlation_plot <- correlation_results %>%
+  pivot_longer(
+    cols = starts_with("Correlation_"),
+    names_to = "Weather_Variable",
+    values_to = "Correlation"
+  ) %>%
+  mutate(
+    Weather_Variable = recode(
+      Weather_Variable,
+      Correlation_HDD = "Heating Degree Days",
+      Correlation_CDD = "Cooling Degree Days",
+      Correlation_PRCP = "Precipitation"
+    )
+  )
+
+# Plot correlation coefficients
+ggplot(correlation_plot,
+       aes(x = Weather_Variable,
+           y = Correlation,
+           fill = Weather_Variable)) +
+  geom_col(width = 0.6) +
+  geom_hline(yintercept = 0, color = "black") +
+  facet_wrap(~ Zone) +
+  coord_flip() +
+  labs(
+    title = "Correlation Between Weather and Electricity Demand",
+    subtitle = "Pearson correlations by region, 2020–2026",
+    x = "Weather Variable",
+    y = "Pearson Correlation Coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+### Correlation Analysis 
+Pearson correlation coefficients were calculated to examine the relationships between heating degree days (HDD), cooling degree days (CDD), precipitation, and daily average electricity load in New York City and Long Island from 2020 through September 2026.
+
+Cooling degree days demonstrated the strongest positive relationship with electricity demand in both regions. Long Island had a correlation coefficient of 0.908, while NYC had a coefficient of 0.854. These results indicate that higher cooling requirements are strongly associated with increased electricity demand, supporting the seasonal and temperature related patterns identified in the earlier visualizations.
+
+Heating degree days showed negative correlations with electricity demand, with coefficients of -0.332 in Long Island and -0.251 in NYC. Although electricity demand may increase during colder conditions, the overall negative correlations suggest that the stronger summer electricity peaks influence the relationship across the full dataset.
+
+Precipitation demonstrated very weak positive correlations with electricity demand, with coefficients of 0.035 in Long Island and 0.061 in NYC. These findings are consistent with the earlier precipitation analysis, which identified minimal differences in average electricity load between rainy and dry days.
+
+The correlation analysis provides additional evidence that cooling related weather conditions have the strongest linear association with electricity demand among the weather variables examined. However, these correlations do not establish causation or account for other factors influencing electricity consumption.
+
+# Conclusion
+
+This exploratory analysis examined the relationship between weather conditions and daily electricity demand in New York City (NYC) and Long Island (LI) from January 2020 through September 2026. Using NOAA weather observations and NYISO electricity load data, the analysis investigated temperature patterns, heating and cooling degree days, seasonal variation, precipitation, and unusually high electricity demand.
+
+The results indicate that temperature, particularly warmer weather, has a strong association with electricity demand in both regions. The temperature scatterplots revealed a nonlinear relationship, with electricity demand generally lowest during moderate temperatures and increasing substantially during hotter conditions. Seasonal comparisons further demonstrated that summer consistently had the highest average electricity load in both NYC and LI.
+
+The correlation analysis provided additional support for these findings. Cooling degree days had a strong positive correlation with electricity demand in Long Island (r = 0.908) and NYC (r = 0.854), suggesting that cooling-related weather conditions are closely associated with increased electricity consumption. Heating degree days demonstrated weaker negative overall correlations, while precipitation showed almost no linear association with electricity load.
+
+The outlier analysis also highlighted the importance of hot weather. Of the 105 unusually high-load observations identified in NYC, 101 occurred on days with average temperatures of at least 80°F. In Long Island, 75 of the 108 high-load outliers occurred under the same conditions. These findings suggest that unusually high electricity demand frequently coincides with extreme heat, particularly in NYC.
+
+Although NYC had substantially higher average electricity demand than Long Island, both regions exhibited similar seasonal and temperature-related patterns. Overall, the analysis suggests that warmer temperatures and increased cooling requirements are the most important weather related indicators of electricity demand among the variables examined. These findings may help inform electricity demand forecasting and seasonal energy planning, although the observed relationships should not be interpreted as evidence of causation.
+
+Several limitations should be considered when interpreting the results of this analysis.
+
+First, the analysis is observational and identifies associations between weather conditions and electricity demand rather than establishing causal relationships. Other factors, including population, economic activity, holidays, electricity prices, and changes in energy consumption behavior, may influence electricity demand but were not included in the analysis.
+
+Second, the weather data were obtained from three monitoring stations, with two stations representing NYC and one representing Long Island. As a result, the measurements may not fully capture weather variation across either region. Averaging the two NYC stations also simplifies local temperature differences.
+
+Third, the electricity dataset contained seven missing dates for each region during the study period. Although the final joined dataset contained no missing values, these dates were absent from the analysis.
+
+Fourth, the precipitation analysis classified observations as rainy or dry based on whether any precipitation was recorded. This approach did not account for precipitation intensity, duration, or differences in temperature and season between rainy and dry days.
+
+Finally, Pearson correlation coefficients measure linear relationships and may not fully represent nonlinear patterns. The temperature scatterplots suggested a U-shaped relationship between temperature and electricity demand, demonstrating that graphical analysis remains important alongside numerical correlations.
+
+Future research could incorporate additional weather stations, humidity, holidays, population, and economic indicators. Statistical modeling could also help determine how much variation in electricity demand can be explained by weather conditions after accounting for other factors.
