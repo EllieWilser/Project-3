@@ -5476,23 +5476,22 @@ z-index: 1000;
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#approach" id="toc-approach" class="nav-link active" data-scroll-target="#approach">Approach</a></li>
+  <li><a href="#approach" id="toc-approach" class="nav-link active" data-scroll-target="#approach">Approach</a>
+  <ul class="collapse">
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview"><strong>Overview</strong></a></li>
+  <li><a href="#nyiso-dataset" id="toc-nyiso-dataset" class="nav-link" data-scroll-target="#nyiso-dataset"><strong>NYISO Dataset</strong></a></li>
+  <li><a href="#weather-dataset" id="toc-weather-dataset" class="nav-link" data-scroll-target="#weather-dataset"><strong>Weather Dataset</strong></a></li>
+  <li><a href="#database-design" id="toc-database-design" class="nav-link" data-scroll-target="#database-design"><strong>Database Design</strong></a></li>
+  <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis"><strong>Analysis</strong></a></li>
+  </ul></li>
   <li><a href="#code" id="toc-code" class="nav-link" data-scroll-target="#code">Code</a>
   <ul class="collapse">
   <li><a href="#loading-weather-data-member-1" id="toc-loading-weather-data-member-1" class="nav-link" data-scroll-target="#loading-weather-data-member-1">Loading Weather Data (Member 1)</a></li>
-  </ul></li>
-  <li><a href="#select-weather-stations-and-date-range" id="toc-select-weather-stations-and-date-range" class="nav-link" data-scroll-target="#select-weather-stations-and-date-range">Select weather stations and date range</a></li>
-  <li><a href="#identify-relevant-variables-date-temperature-precipitation" id="toc-identify-relevant-variables-date-temperature-precipitation" class="nav-link" data-scroll-target="#identify-relevant-variables-date-temperature-precipitation">Identify relevant variables (date, temperature, precipitation)</a></li>
-  <li><a href="#import-weather-data-into-r" id="toc-import-weather-data-into-r" class="nav-link" data-scroll-target="#import-weather-data-into-r">Import weather data into R</a></li>
-  <li><a href="#check-missing-values-duplicates-and-inconsistent-formats" id="toc-check-missing-values-duplicates-and-inconsistent-formats" class="nav-link" data-scroll-target="#check-missing-values-duplicates-and-inconsistent-formats">Check missing values, duplicates, and inconsistent formats</a></li>
-  <li><a href="#calculate-average-temperature-hdd-and-cdd" id="toc-calculate-average-temperature-hdd-and-cdd" class="nav-link" data-scroll-target="#calculate-average-temperature-hdd-and-cdd">7. Calculate average temperature, HDD, and CDD</a></li>
-  <li><a href="#assumes-tmax-and-tmin-are-in-fahrenheit." id="toc-assumes-tmax-and-tmin-are-in-fahrenheit." class="nav-link" data-scroll-target="#assumes-tmax-and-tmin-are-in-fahrenheit.">Assumes TMAX and TMIN are in Fahrenheit.</a>
-  <ul class="collapse">
   <li><a href="#nyiso-electricity-member-2" id="toc-nyiso-electricity-member-2" class="nav-link" data-scroll-target="#nyiso-electricity-member-2">NYISO Electricity (Member 2)</a></li>
   <li><a href="#database-design-and-creation-member-3" id="toc-database-design-and-creation-member-3" class="nav-link" data-scroll-target="#database-design-and-creation-member-3">Database Design and Creation (Member 3)</a></li>
   <li><a href="#analysis-member-4" id="toc-analysis-member-4" class="nav-link" data-scroll-target="#analysis-member-4">Analysis (Member 4)</a></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
 </div>
@@ -5562,19 +5561,26 @@ z-index: 1000;
 </tr>
 </tbody>
 </table>
-<p><strong>Overview</strong></p>
+<section id="overview" class="level3">
+<h3 class="anchored" data-anchor-id="overview"><strong>Overview</strong></h3>
 <p>Project 3 will examine the relationship between weather and electricity load in New York City by combining data from the National Weather Service (NWS) and the New York Independent System Operator (NYISO). Team members will download data covering a shared time range, select relevant variables, and clean the datasets using R, addressing missing values, duplicates, inconsistent formats, and potential outliers.</p>
 <p>A PostgreSQL database will be designed to store the weather and electricity data, establish relationships between tables, and support joining the datasets for analysis. Using R, the team will calculate summary statistics, and create visualizations of weather and electricity load over time. </p>
 <p>The goal of this project is to explore the relationship between weather and electricity demand while applying practical and diverse skills and tools used by data scientists such as data acquisition, database management, data preparation, exploratory analysis, and visualization.</p>
 <p>Throughout the project, members will document data sources, cleaning approach, database design, and analysis methods by collaborating through a shared GitHub repository and Google Drive. Finally all members will review code and findings, and prepare a final presentation.</p>
-<p><strong>NYISO Dataset</strong></p>
+</section>
+<section id="nyiso-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="nyiso-dataset"><strong>NYISO Dataset</strong></h3>
 <p>The plan is to download monthly NYISO electricity load data from January 2020 through September 2026, and filter the data to include New York City (N.Y.C.) and Long Island (LONGIL). Duplicate records and missing values will be checked. Afterwards the timestamps will be converted to calendar dates and the five-minute observations aggregated into daily averages for each location, excluding NAs. The daily averages will be rounded to two decimal places for readability. The final dataset will be saved as a csv called “nyiso_daily_average_load”, ready to be integrated with the weather data and used for further analysis.</p>
 <p>NYISO Dataset: 4,916 rows covering January 1, 2020, through September 30, 2026, with the columns Date, Name, PTID, and Daily_Average_Load. 14 missing Load values were found and excluded.</p>
-<p><strong>Weather Dataset</strong></p>
+</section>
+<section id="weather-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="weather-dataset"><strong>Weather Dataset</strong></h3>
 <p>The plan is to collect daily weather data from NOAA for January 2020 through September 2026 from three stations: LaGuardia Airport, Central Park for NYC (Zone J), and Islip Airport for Long Island (Zone K). Relevant variables will include <strong>daily average, min/max temperature, and precipitation</strong>.</p>
 <p>The data will be cleaned using R to address missing values, duplicate records, inconsistent date formats, and potential outliers. Dates will be standardized to match the NYISO electricity load dataset. The cleaned weather data will be saved as a CSV file and integrated with the daily electricity load data to explore relationships between weather conditions and electricity demand.</p>
 <p>The NOAA weather dataset combines observations from three stations: LaGuardia Airport, Central Park, and Islip Airport, covering 7,395 records. Three new columns were added: <strong>TAVG</strong> (average temperature), <strong>HDD</strong> (heating degree days), and <strong>CDD</strong> (cooling degree days). The data was processed in R, and the cleaned dataset was saved as a new CSV file for integration with the NYISO electricity load data.</p>
-<p><strong>Database Design</strong> </p>
+</section>
+<section id="database-design" class="level3">
+<h3 class="anchored" data-anchor-id="database-design"><strong>Database Design</strong></h3>
 <p>After the NYISO and weather data are cleaned and prepared for analysis, new normalized tables will be structured to satisfy the following criteria:</p>
 <ul>
 <li><p>1NF: Each table cell must contain a single, atomic (indivisible) value, and every record must be unique.</p></li>
@@ -5583,20 +5589,21 @@ z-index: 1000;
 </ul>
 <p>Accompanying the normalized tables, an entity-relationship diagram (ERD) will be created to visualize the database structure and attribute details. This will be accomplished using Mermaid code blocks embedded directly within Quarto documents to render the diagrams from text.</p>
 <p>Once the tables are normalized and documented, they will be loaded into a PostgreSQL server, ensuring the schema defined in the ERD is directly reflected in the SQL table creation scripts.</p>
-<p><strong>Analysis</strong></p>
+</section>
+<section id="analysis" class="level3">
+<h3 class="anchored" data-anchor-id="analysis"><strong>Analysis</strong></h3>
 <p>The analysis will be conducted using R and the packages within such as dplyr, tidyr, and ggplot2. These packages are the foundation for data manipulation, summary statistics, and visualization. Once the weather and electricity datasets have been cleaned and integrated, we will explore the relationship between weather conditions and electricity load in New York City. Since the weather data is recorded daily, electricity load observations will be aggregated to a daily level to allow for consistent comparisons.</p>
 <pre><code>The analysis will begin by calculating descriptive statistics, including mean, minimum, and maximum electricity load, temperature, and precipitation. Then time series visualizations will be created to examine changes in electricity demand and weather conditions over time. Scatterplots will be used to explore the relationship between temperature and electricity load, while additional comparisons may examine seasonal patterns and differences in demand during warmer and colder periods.
 
 Throughout the analysis, we will examine missing values and potential outliers to determine whether they reflect data quality issues or meaningful observations, such as extreme weather events. Our findings will focus on identifying trends, patterns, and possible associations rather than establishing causation. The results will be summarized through visualizations and descriptive statistics, with consideration given to limitations in the datasets and analysis.</code></pre>
 </section>
+</section>
 <section id="code" class="level2">
 <h2 class="anchored" data-anchor-id="code">Code</h2>
 <section id="loading-weather-data-member-1" class="level3">
 <h3 class="anchored" data-anchor-id="loading-weather-data-member-1">Loading Weather Data (Member 1)</h3>
-</section>
-</section>
-<section id="select-weather-stations-and-date-range" class="level2">
-<h2 class="anchored" data-anchor-id="select-weather-stations-and-date-range">Select weather stations and date range</h2>
+<section id="select-weather-stations-and-date-range" class="level4">
+<h4 class="anchored" data-anchor-id="select-weather-stations-and-date-range">Select weather stations and date range</h4>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Import the existing combined CSV file</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>weather <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
@@ -5605,8 +5612,8 @@ Throughout the analysis, we will examine missing values and potential outliers t
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="identify-relevant-variables-date-temperature-precipitation" class="level2">
-<h2 class="anchored" data-anchor-id="identify-relevant-variables-date-temperature-precipitation">Identify relevant variables (date, temperature, precipitation)</h2>
+<section id="identify-relevant-variables-date-temperature-precipitation" class="level4">
+<h4 class="anchored" data-anchor-id="identify-relevant-variables-date-temperature-precipitation">Identify relevant variables (date, temperature, precipitation)</h4>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Check the data</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">dim</span>(weather))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -5633,8 +5640,8 @@ $ NYISO_ZONE   &lt;chr&gt; &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &q
 </div>
 </div>
 </section>
-<section id="import-weather-data-into-r" class="level2">
-<h2 class="anchored" data-anchor-id="import-weather-data-into-r">Import weather data into R</h2>
+<section id="import-weather-data-into-r" class="level4">
+<h4 class="anchored" data-anchor-id="import-weather-data-into-r">Import weather data into R</h4>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Standardize data types and filter the date range</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>weather_clean <span class="ot">&lt;-</span> weather <span class="sc">%&gt;%</span></span>
@@ -5656,8 +5663,8 @@ $ NYISO_ZONE   &lt;chr&gt; &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &q
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="check-missing-values-duplicates-and-inconsistent-formats" class="level2">
-<h2 class="anchored" data-anchor-id="check-missing-values-duplicates-and-inconsistent-formats">Check missing values, duplicates, and inconsistent formats</h2>
+<section id="check-missing-values-duplicates-and-inconsistent-formats" class="level4">
+<h4 class="anchored" data-anchor-id="check-missing-values-duplicates-and-inconsistent-formats">Check missing values, duplicates, and inconsistent formats</h4>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Check duplicate station-date records</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>duplicates <span class="ot">&lt;-</span> weather_clean <span class="sc">%&gt;%</span></span>
@@ -5678,11 +5685,9 @@ $ NYISO_ZONE   &lt;chr&gt; &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &q
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="calculate-average-temperature-hdd-and-cdd" class="level1">
-<h1>7. Calculate average temperature, HDD, and CDD</h1>
-</section>
-<section id="assumes-tmax-and-tmin-are-in-fahrenheit." class="level1">
-<h1>Assumes TMAX and TMIN are in Fahrenheit.</h1>
+<section id="calculate-average-temperature-hdd-and-cdd" class="level4">
+<h4 class="anchored" data-anchor-id="calculate-average-temperature-hdd-and-cdd">Calculate average temperature, HDD, and CDD</h4>
+<p>Assumes TMAX and TMIN are in Fahrenheit.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>weather_clean <span class="ot">&lt;-</span> weather_clean <span class="sc">%&gt;%</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
@@ -5711,6 +5716,8 @@ $ NYISO_ZONE   &lt;chr&gt; &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &q
 <span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">na =</span> <span class="st">&quot;&quot;</span></span>
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+</section>
 <section id="nyiso-electricity-member-2" class="level3">
 <h3 class="anchored" data-anchor-id="nyiso-electricity-member-2">NYISO Electricity (Member 2)</h3>
 <section id="loading-libraries" class="level4">
@@ -5849,6 +5856,8 @@ $ NYISO_ZONE   &lt;chr&gt; &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &q
 </section>
 <section id="database-design-and-creation-member-3" class="level3">
 <h3 class="anchored" data-anchor-id="database-design-and-creation-member-3">Database Design and Creation (Member 3)</h3>
+<section id="entity-relationship-diagram" class="level4">
+<h4 class="anchored" data-anchor-id="entity-relationship-diagram">Entity Relationship Diagram</h4>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-erd" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -5902,6 +5911,9 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <li><p>3NF: There are no transitive dependencies.</p></li>
 </ul>
 <p>Listed in the ER Diagram is the data types of each attributes we plan to use, and the key types we will be assigning in PostgreSQL.</p>
+</section>
+<section id="connecting-to-database" class="level4">
+<h4 class="anchored" data-anchor-id="connecting-to-database">Connecting to Database</h4>
 <p>First, a connection was established to a local database that can be change for reproducibility.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI)</span>
@@ -5914,15 +5926,27 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">user     =</span> <span class="st">&quot;postgres&quot;</span></span>
 <span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="creating-normalized-tables" class="level4">
+<h4 class="anchored" data-anchor-id="creating-normalized-tables">Creating Normalized Tables</h4>
 <p>Next, the normalized tables were formed from the cleaned data files in step 1 and 2.</p>
-<p>F</p>
+</section>
+<section id="creating-database-schema" class="level4">
+<h4 class="anchored" data-anchor-id="creating-database-schema">Creating Database Schema</h4>
+</section>
+<section id="loading-data-into-sql" class="level4">
+<h4 class="anchored" data-anchor-id="loading-data-into-sql">Loading Data into SQL</h4>
+</section>
+<section id="test-queries" class="level4">
+<h4 class="anchored" data-anchor-id="test-queries">Test Queries</h4>
+</section>
 </section>
 <section id="analysis-member-4" class="level3">
 <h3 class="anchored" data-anchor-id="analysis-member-4">Analysis (Member 4)</h3>
 </section>
+</section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-</section>
 </section>
 
 </main>

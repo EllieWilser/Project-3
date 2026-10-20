@@ -42,7 +42,7 @@ editor: visual
 | NYC (Zone J)         | Central Park             |
 | Long Island (Zone K) | Islip Airport            |
 
-**Overview**
+### **Overview**
 
 Project 3 will examine the relationship between weather and electricity load in New York City by combining data from the National Weather Service (NWS) and the New York Independent System Operator (NYISO). Team members will download data covering a shared time range, select relevant variables, and clean the datasets using R, addressing missing values, duplicates, inconsistent formats, and potential outliers.
 
@@ -52,13 +52,13 @@ The goal of this project is to explore the relationship between weather and elec
 
 Throughout the project, members will document data sources, cleaning approach, database design, and analysis methods by collaborating through a shared GitHub repository and Google Drive. Finally all members will review code and findings, and prepare a final presentation.
 
-**NYISO Dataset**
+### **NYISO Dataset**
 
 The plan is to download monthly NYISO electricity load data from January 2020 through September 2026, and filter the data to include New York City (N.Y.C.) and Long Island (LONGIL). Duplicate records and missing values will be checked. Afterwards the timestamps will be converted to calendar dates and the five-minute observations aggregated into daily averages for each location, excluding NAs. The daily averages will be rounded to two decimal places for readability. The final dataset will be saved as a csv called “nyiso_daily_average_load”, ready to be integrated with the weather data and used for further analysis.
 
 NYISO Dataset: 4,916 rows covering January 1, 2020, through September 30, 2026, with the columns Date, Name, PTID, and Daily_Average_Load. 14 missing Load values were found and excluded.
 
-**Weather Dataset**
+### **Weather Dataset**
 
 The plan is to collect daily weather data from NOAA for January 2020 through September 2026 from three stations: LaGuardia Airport, Central Park for NYC (Zone J), and Islip Airport for Long Island (Zone K). Relevant variables will include **daily average, min/max temperature, and precipitation**.
 
@@ -66,7 +66,7 @@ The data will be cleaned using R to address missing values, duplicate records, i
 
 The NOAA weather dataset combines observations from three stations: LaGuardia Airport, Central Park, and Islip Airport, covering 7,395 records. Three new columns were added: **TAVG** (average temperature), **HDD** (heating degree days), and **CDD** (cooling degree days). The data was processed in R, and the cleaned dataset was saved as a new CSV file for integration with the NYISO electricity load data.
 
-**Database Design** 
+### **Database Design**
 
 After the NYISO and weather data are cleaned and prepared for analysis, new normalized tables will be structured to satisfy the following criteria:
 
@@ -80,7 +80,7 @@ Accompanying the normalized tables, an entity-relationship diagram (ERD) will be
 
 Once the tables are normalized and documented, they will be loaded into a PostgreSQL server, ensuring the schema defined in the ERD is directly reflected in the SQL table creation scripts.
 
-**Analysis**
+### **Analysis**
 
 The analysis will be conducted using R and the packages within such as dplyr, tidyr, and ggplot2. These packages are the foundation for data manipulation, summary statistics, and visualization. Once the weather and electricity datasets have been cleaned and integrated, we will explore the relationship between weather conditions and electricity load in New York City. Since the weather data is recorded daily, electricity load observations will be aggregated to a daily level to allow for consistent comparisons.
 
@@ -99,7 +99,7 @@ library(tidyverse)
 
 ### Loading Weather Data (Member 1)
 
-## Select weather stations and date range
+#### Select weather stations and date range
 
 ```{r}
 # 1. Import the existing combined CSV file
@@ -109,7 +109,7 @@ weather <- read_csv(
 )
 ```
 
-## Identify relevant variables (date, temperature, precipitation)
+#### Identify relevant variables (date, temperature, precipitation)
 
 ```{r}
 # 2. Check the data
@@ -118,7 +118,7 @@ print(names(weather))
 glimpse(weather)
 ```
 
-## Import weather data into R
+#### Import weather data into R
 
 ```{r}
 # 3. Standardize data types and filter the date range
@@ -141,7 +141,7 @@ weather_clean <- weather %>%
   )
 ```
 
-## Check missing values, duplicates, and inconsistent formats
+#### Check missing values, duplicates, and inconsistent formats
 
 ```{r}
 # 5. Check duplicate station-date records
@@ -157,9 +157,9 @@ weather_clean <- weather_clean %>%
   distinct()
 ```
 
-# 7. Calculate average temperature, HDD, and CDD
+#### Calculate average temperature, HDD, and CDD
 
-# Assumes TMAX and TMIN are in Fahrenheit.
+Assumes TMAX and TMIN are in Fahrenheit.
 
 ```{r}
 weather_clean <- weather_clean %>%
@@ -330,6 +330,8 @@ write_csv(daily_load, "nyiso_daily_average_load.csv")
 
 ### Database Design and Creation (Member 3)
 
+#### Entity Relationship Diagram
+
 ```{mermaid}
 %%| label: fig-erd
 %%| fig-cap: "Normalized schema for NYISO load and NOAA weather data"
@@ -375,6 +377,8 @@ The ER diagram above is how the data will be structured and loaded into a Postgr
 
 Listed in the ER Diagram is the data types of each attributes we plan to use, and the key types we will be assigning in PostgreSQL.
 
+#### Connecting to Database
+
 First, a connection was established to a local database that can be change for reproducibility.
 
 ```{r Connecting to PostgreSQL}
@@ -390,7 +394,15 @@ con <- dbConnect(
 
 ```
 
+#### Creating Normalized Tables
+
 Next, the normalized tables were formed from the cleaned data files in step 1 and 2.
+
+#### Creating Database Schema
+
+#### Loading Data into SQL
+
+#### Test Queries
 
 ### Analysis (Member 4)
 
