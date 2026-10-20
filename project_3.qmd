@@ -441,9 +441,80 @@ daily_weather <- weather_clean |>
 
 #### Creating Database Schema
 
-#### Loading Data into SQL
+```{sql connection = con}
+DROP TABLE IF EXISTS daily_weather;
+```
+
+```{sql connection = con}
+DROP TABLE IF EXISTS daily_electricity_load;
+```
+
+```{sql connection = con}
+DROP TABLE IF EXISTS weather_station;
+```
+
+```{sql connection = con}
+DROP TABLE IF EXISTS zone;
+```
+
+```{sql connection = con}
+CREATE TABLE zone (
+    ptid             INTEGER PRIMARY KEY,
+    nyiso_zone_name  TEXT NOT NULL,
+    noaa_zone_name   TEXT NOT NULL
+);
+```
+
+```{sql connection=con}
+CREATE TABLE weather_station (
+    station_id         TEXT PRIMARY KEY,
+    noaa_station_name  TEXT NOT NULL,
+    ptid               INTEGER NOT NULL,
+    CONSTRAINT fk_weather_station_zone
+        FOREIGN KEY (ptid) REFERENCES zone (ptid)
+);
+```
+
+```{sql connection=con}
+CREATE TABLE daily_electricity_load (
+    ptid       INTEGER NOT NULL,
+    load_date  DATE    NOT NULL,
+    avg_load   NUMERIC,
+    CONSTRAINT pk_daily_electricity_load PRIMARY KEY (ptid, load_date),
+    CONSTRAINT fk_daily_load_zone
+        FOREIGN KEY (ptid) REFERENCES zone (ptid)
+);
+```
+
+```{sql connection=con}
+CREATE TABLE daily_weather (
+    station_id  TEXT NOT NULL,
+    obs_date    DATE NOT NULL,
+    prcp        NUMERIC,
+    tmax        NUMERIC,
+    tmin        NUMERIC,
+    CONSTRAINT pk_daily_weather PRIMARY KEY (station_id, obs_date),
+    CONSTRAINT fk_daily_weather_station
+        FOREIGN KEY (station_id) REFERENCES weather_station (station_id)
+);
+```
+
+#### Loading Data into Database
+
+```{r Load Data into Database}
+dbWithTransaction(con, {
+  dbAppendTable(con, "zone", zone)
+  dbAppendTable(con, "weather_station", weather_station)
+  dbAppendTable(con, "daily_electricity_load", daily_electricity_load)
+  dbAppendTable(con, "daily_weather",daily_weather)
+})
+```
 
 #### Test Queries
+
+```{sql connection = con}
+SELECT * FROM daily_weather
+```
 
 ### Analysis (Member 4)
 
