@@ -398,6 +398,47 @@ con <- dbConnect(
 
 Next, the normalized tables were formed from the cleaned data files in step 1 and 2.
 
+```{r Zone-Normalized-Table}
+zone_crosswalk = data.frame(
+  nyiso_zone_name = c("LONGIL", "N.Y.C."),
+  noaa_zone_name = c("Long Island", "NYC")
+)
+
+zone <- daily_load |>
+  distinct(ptid = PTID, nyiso_zone_name = Name) |>
+  left_join(zone_crosswalk, by = "nyiso_zone_name") |>
+  select(ptid, nyiso_zone_name, noaa_zone_name) |>
+  arrange(ptid)
+```
+
+```{r Weather-Station-Table}
+weather_station <- weather_clean |>
+  distinct(station_id = STATION,
+           noaa_station_name = NAME,
+           noaa_zone_name = NYISO_ZONE) |>
+  left_join(zone |> select(ptid, noaa_zone_name), by = "noaa_zone_name") |>
+  select(station_id, noaa_station_name, ptid) |>
+  arrange(station_id)
+```
+
+```{r daily-load-table}
+daily_electricity_load <- daily_load |>
+  transmute(ptid = PTID,
+            load_date = as.Date(Date),
+            avg_load = Daily_Average_Load) |>
+  arrange(ptid, load_date)
+```
+
+```{r daily-weather-data}
+daily_weather <- weather_clean |>
+  transmute(station_id = STATION,
+            obs_date = as.Date(DATE),
+            prcp = PRCP,
+            tmax = TMAX,
+            tmin = TMIN) |>
+  arrange(station_id, obs_date)
+```
+
 #### Creating Database Schema
 
 #### Loading Data into SQL
