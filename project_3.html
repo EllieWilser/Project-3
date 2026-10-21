@@ -5918,18 +5918,20 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI)</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RPostgres)</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Change information to your database</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>con <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  RPostgres<span class="sc">::</span><span class="fu">Postgres</span>(),</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">dbname   =</span> <span class="st">&quot;project_3&quot;</span>,</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">user     =</span> <span class="st">&quot;postgres&quot;</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Change information to your database</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>con <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  RPostgres<span class="sc">::</span><span class="fu">Postgres</span>(),</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">dbname   =</span> <span class="st">&quot;project_3&quot;</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">user     =</span> <span class="st">&quot;postgres&quot;</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="creating-normalized-tables" class="level4">
 <h4 class="anchored" data-anchor-id="creating-normalized-tables">Creating Normalized Tables</h4>
 <p>Next, the normalized tables were formed from the cleaned data files in step 1 and 2.</p>
+<p>The first normalized table that was created is the zone table that is the crosswalk between the zone names in the weather and electricity data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>zone_crosswalk <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">nyiso_zone_name =</span> <span class="fu">c</span>(<span class="st">&quot;LONGIL&quot;</span>, <span class="st">&quot;N.Y.C.&quot;</span>),</span>
@@ -5940,8 +5942,438 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(<span class="at">ptid =</span> PTID, <span class="at">nyiso_zone_name =</span> Name) <span class="sc">|&gt;</span></span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(zone_crosswalk, <span class="at">by =</span> <span class="st">&quot;nyiso_zone_name&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ptid, nyiso_zone_name, noaa_zone_name) <span class="sc">|&gt;</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ptid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ptid)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>zone <span class="sc">|&gt;</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()<span class="sc">|&gt;</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">&quot;Normalized Zone Table&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="tesilysips" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#tesilysips table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#tesilysips thead, #tesilysips tbody, #tesilysips tfoot, #tesilysips tr, #tesilysips td, #tesilysips th {
+border-style: none;
+}
+#tesilysips p {
+margin: 0;
+padding: 0;
+}
+#tesilysips .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#tesilysips .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#tesilysips .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#tesilysips .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#tesilysips .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#tesilysips .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tesilysips .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#tesilysips .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#tesilysips .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#tesilysips .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#tesilysips .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#tesilysips .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#tesilysips .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#tesilysips .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#tesilysips .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#tesilysips .gt_from_md > :first-child {
+margin-top: 0;
+}
+#tesilysips .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#tesilysips .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#tesilysips .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tesilysips .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#tesilysips .gt_row_group_first td {
+border-top-width: 2px;
+}
+#tesilysips .gt_row_group_first th {
+border-top-width: 2px;
+}
+#tesilysips .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tesilysips .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#tesilysips .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#tesilysips .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tesilysips .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tesilysips .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#tesilysips .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#tesilysips .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#tesilysips .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tesilysips .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#tesilysips .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tesilysips .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#tesilysips .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tesilysips .gt_left {
+text-align: left;
+}
+#tesilysips .gt_center {
+text-align: center;
+}
+#tesilysips .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#tesilysips .gt_font_normal {
+font-weight: normal;
+}
+#tesilysips .gt_font_bold {
+font-weight: bold;
+}
+#tesilysips .gt_font_italic {
+font-style: italic;
+}
+#tesilysips .gt_super {
+font-size: 65%;
+}
+#tesilysips .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#tesilysips .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#tesilysips .gt_indent_1 {
+text-indent: 5px;
+}
+#tesilysips .gt_indent_2 {
+text-indent: 10px;
+}
+#tesilysips .gt_indent_3 {
+text-indent: 15px;
+}
+#tesilysips .gt_indent_4 {
+text-indent: 20px;
+}
+#tesilysips .gt_indent_5 {
+text-indent: 25px;
+}
+#tesilysips .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#tesilysips div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="3" class="gt_heading gt_title gt_font_normal gt_bottom_border">Normalized Zone Table</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="ptid" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">ptid</th>
+<th id="nyiso_zone_name" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">nyiso_zone_name</th>
+<th id="noaa_zone_name" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">noaa_zone_name</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_left" headers="nyiso_zone_name">N.Y.C.</td>
+<td class="gt_row gt_left" headers="noaa_zone_name">NYC</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="ptid">61762</td>
+<td class="gt_row gt_left" headers="nyiso_zone_name">LONGIL</td>
+<td class="gt_row gt_left" headers="noaa_zone_name">Long Island</td>
+</tr>
+</tbody>
+</table>
+
 </div>
+</div>
+</div>
+<p>The weather station table was normalized to just contain data describing the different weather stations. The table includes the station ID, station name and the ptid which is the zone ID from the electricity data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>weather_station <span class="ot">&lt;-</span> weather_clean <span class="sc">|&gt;</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(<span class="at">station_id =</span> STATION,</span>
@@ -5949,15 +6381,899 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">noaa_zone_name =</span> NYISO_ZONE) <span class="sc">|&gt;</span></span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(zone <span class="sc">|&gt;</span> <span class="fu">select</span>(ptid, noaa_zone_name), <span class="at">by =</span> <span class="st">&quot;noaa_zone_name&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(station_id, noaa_station_name, ptid) <span class="sc">|&gt;</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(station_id)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(station_id)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>weather_station <span class="sc">|&gt;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()<span class="sc">|&gt;</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title=</span><span class="st">&quot;Weather Station Normalized Table&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="djkqtcgogb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#djkqtcgogb table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#djkqtcgogb thead, #djkqtcgogb tbody, #djkqtcgogb tfoot, #djkqtcgogb tr, #djkqtcgogb td, #djkqtcgogb th {
+border-style: none;
+}
+#djkqtcgogb p {
+margin: 0;
+padding: 0;
+}
+#djkqtcgogb .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#djkqtcgogb .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#djkqtcgogb .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#djkqtcgogb .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#djkqtcgogb .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#djkqtcgogb .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#djkqtcgogb .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#djkqtcgogb .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#djkqtcgogb .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#djkqtcgogb .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#djkqtcgogb .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#djkqtcgogb .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#djkqtcgogb .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#djkqtcgogb .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#djkqtcgogb .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#djkqtcgogb .gt_from_md > :first-child {
+margin-top: 0;
+}
+#djkqtcgogb .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#djkqtcgogb .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#djkqtcgogb .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#djkqtcgogb .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#djkqtcgogb .gt_row_group_first td {
+border-top-width: 2px;
+}
+#djkqtcgogb .gt_row_group_first th {
+border-top-width: 2px;
+}
+#djkqtcgogb .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#djkqtcgogb .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#djkqtcgogb .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#djkqtcgogb .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#djkqtcgogb .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#djkqtcgogb .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#djkqtcgogb .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#djkqtcgogb .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#djkqtcgogb .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#djkqtcgogb .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#djkqtcgogb .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#djkqtcgogb .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#djkqtcgogb .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#djkqtcgogb .gt_left {
+text-align: left;
+}
+#djkqtcgogb .gt_center {
+text-align: center;
+}
+#djkqtcgogb .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#djkqtcgogb .gt_font_normal {
+font-weight: normal;
+}
+#djkqtcgogb .gt_font_bold {
+font-weight: bold;
+}
+#djkqtcgogb .gt_font_italic {
+font-style: italic;
+}
+#djkqtcgogb .gt_super {
+font-size: 65%;
+}
+#djkqtcgogb .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#djkqtcgogb .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#djkqtcgogb .gt_indent_1 {
+text-indent: 5px;
+}
+#djkqtcgogb .gt_indent_2 {
+text-indent: 10px;
+}
+#djkqtcgogb .gt_indent_3 {
+text-indent: 15px;
+}
+#djkqtcgogb .gt_indent_4 {
+text-indent: 20px;
+}
+#djkqtcgogb .gt_indent_5 {
+text-indent: 25px;
+}
+#djkqtcgogb .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#djkqtcgogb div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="3" class="gt_heading gt_title gt_font_normal gt_bottom_border">Weather Station Normalized Table</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="station_id" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">station_id</th>
+<th id="noaa_station_name" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">noaa_station_name</th>
+<th id="ptid" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">ptid</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_left" headers="noaa_station_name">ISLIP LI MACARTHUR AIRPORT, NY US</td>
+<td class="gt_row gt_right" headers="ptid">61762</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="station_id">USW00014732</td>
+<td class="gt_row gt_left" headers="noaa_station_name">LAGUARDIA AIRPORT, NY US</td>
+<td class="gt_row gt_right" headers="ptid">61761</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="station_id">USW00094728</td>
+<td class="gt_row gt_left" headers="noaa_station_name">NY CITY CENTRAL PARK, NY US</td>
+<td class="gt_row gt_right" headers="ptid">61761</td>
+</tr>
+</tbody>
+</table>
+
 </div>
+</div>
+</div>
+<p>The daily load table was normalized next to include just the load amount by data and by zone ID.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>daily_electricity_load <span class="ot">&lt;-</span> daily_load <span class="sc">|&gt;</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">ptid =</span> PTID,</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">load_date =</span> <span class="fu">as.Date</span>(Date),</span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">avg_load =</span> Daily_Average_Load) <span class="sc">|&gt;</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ptid, load_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ptid, load_date)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>daily_electricity_load <span class="sc">|&gt;</span> </span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title=</span><span class="st">&quot;Daily Electricity Load&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;First 5 Rows&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="nfstxzjaxg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#nfstxzjaxg table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#nfstxzjaxg thead, #nfstxzjaxg tbody, #nfstxzjaxg tfoot, #nfstxzjaxg tr, #nfstxzjaxg td, #nfstxzjaxg th {
+border-style: none;
+}
+#nfstxzjaxg p {
+margin: 0;
+padding: 0;
+}
+#nfstxzjaxg .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#nfstxzjaxg .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#nfstxzjaxg .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#nfstxzjaxg .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#nfstxzjaxg .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#nfstxzjaxg .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#nfstxzjaxg .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#nfstxzjaxg .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#nfstxzjaxg .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#nfstxzjaxg .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#nfstxzjaxg .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#nfstxzjaxg .gt_from_md > :first-child {
+margin-top: 0;
+}
+#nfstxzjaxg .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#nfstxzjaxg .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#nfstxzjaxg .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#nfstxzjaxg .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#nfstxzjaxg .gt_row_group_first td {
+border-top-width: 2px;
+}
+#nfstxzjaxg .gt_row_group_first th {
+border-top-width: 2px;
+}
+#nfstxzjaxg .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#nfstxzjaxg .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#nfstxzjaxg .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#nfstxzjaxg .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#nfstxzjaxg .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#nfstxzjaxg .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#nfstxzjaxg .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#nfstxzjaxg .gt_left {
+text-align: left;
+}
+#nfstxzjaxg .gt_center {
+text-align: center;
+}
+#nfstxzjaxg .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#nfstxzjaxg .gt_font_normal {
+font-weight: normal;
+}
+#nfstxzjaxg .gt_font_bold {
+font-weight: bold;
+}
+#nfstxzjaxg .gt_font_italic {
+font-style: italic;
+}
+#nfstxzjaxg .gt_super {
+font-size: 65%;
+}
+#nfstxzjaxg .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#nfstxzjaxg .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#nfstxzjaxg .gt_indent_1 {
+text-indent: 5px;
+}
+#nfstxzjaxg .gt_indent_2 {
+text-indent: 10px;
+}
+#nfstxzjaxg .gt_indent_3 {
+text-indent: 15px;
+}
+#nfstxzjaxg .gt_indent_4 {
+text-indent: 20px;
+}
+#nfstxzjaxg .gt_indent_5 {
+text-indent: 25px;
+}
+#nfstxzjaxg .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#nfstxzjaxg div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="3" class="gt_heading gt_title gt_font_normal">Daily Electricity Load</td>
+</tr>
+<tr class="gt_heading even">
+<td colspan="3" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">First 5 Rows</td>
+</tr>
+<tr class="gt_col_headings header">
+<th id="ptid" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">ptid</th>
+<th id="load_date" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">load_date</th>
+<th id="avg_load" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">avg_load</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_right" headers="load_date">2020-01-01</td>
+<td class="gt_row gt_right" headers="avg_load">5173.82</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_right" headers="load_date">2020-01-02</td>
+<td class="gt_row gt_right" headers="avg_load">5658.11</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_right" headers="load_date">2020-01-03</td>
+<td class="gt_row gt_right" headers="avg_load">5563.97</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_right" headers="load_date">2020-01-04</td>
+<td class="gt_row gt_right" headers="avg_load">5121.44</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="ptid">61761</td>
+<td class="gt_row gt_right" headers="load_date">2020-01-05</td>
+<td class="gt_row gt_right" headers="avg_load">5161.68</td>
+</tr>
+</tbody>
+</table>
+
 </div>
+</div>
+</div>
+<p>Lastly, the weather data normalized to only have data depending on the station id</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>daily_weather <span class="ot">&lt;-</span> weather_clean <span class="sc">|&gt;</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">station_id =</span> STATION,</span>
@@ -5965,11 +7281,472 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">prcp =</span> PRCP,</span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">tmax =</span> TMAX,</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">tmin =</span> TMIN) <span class="sc">|&gt;</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(station_id, obs_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(station_id, obs_date)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>daily_weather <span class="sc">|&gt;</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title=</span><span class="st">&quot;Daily Weather&quot;</span>,<span class="at">subtitle=</span><span class="st">&quot;First 5 Rows&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="ymifnmxkul" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ymifnmxkul table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#ymifnmxkul thead, #ymifnmxkul tbody, #ymifnmxkul tfoot, #ymifnmxkul tr, #ymifnmxkul td, #ymifnmxkul th {
+border-style: none;
+}
+#ymifnmxkul p {
+margin: 0;
+padding: 0;
+}
+#ymifnmxkul .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#ymifnmxkul .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#ymifnmxkul .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#ymifnmxkul .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#ymifnmxkul .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#ymifnmxkul .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#ymifnmxkul .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#ymifnmxkul .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#ymifnmxkul .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#ymifnmxkul .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#ymifnmxkul .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#ymifnmxkul .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#ymifnmxkul .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#ymifnmxkul .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#ymifnmxkul .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#ymifnmxkul .gt_from_md > :first-child {
+margin-top: 0;
+}
+#ymifnmxkul .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#ymifnmxkul .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#ymifnmxkul .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#ymifnmxkul .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#ymifnmxkul .gt_row_group_first td {
+border-top-width: 2px;
+}
+#ymifnmxkul .gt_row_group_first th {
+border-top-width: 2px;
+}
+#ymifnmxkul .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#ymifnmxkul .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#ymifnmxkul .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#ymifnmxkul .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#ymifnmxkul .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#ymifnmxkul .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#ymifnmxkul .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#ymifnmxkul .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#ymifnmxkul .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#ymifnmxkul .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#ymifnmxkul .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#ymifnmxkul .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#ymifnmxkul .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#ymifnmxkul .gt_left {
+text-align: left;
+}
+#ymifnmxkul .gt_center {
+text-align: center;
+}
+#ymifnmxkul .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#ymifnmxkul .gt_font_normal {
+font-weight: normal;
+}
+#ymifnmxkul .gt_font_bold {
+font-weight: bold;
+}
+#ymifnmxkul .gt_font_italic {
+font-style: italic;
+}
+#ymifnmxkul .gt_super {
+font-size: 65%;
+}
+#ymifnmxkul .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#ymifnmxkul .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#ymifnmxkul .gt_indent_1 {
+text-indent: 5px;
+}
+#ymifnmxkul .gt_indent_2 {
+text-indent: 10px;
+}
+#ymifnmxkul .gt_indent_3 {
+text-indent: 15px;
+}
+#ymifnmxkul .gt_indent_4 {
+text-indent: 20px;
+}
+#ymifnmxkul .gt_indent_5 {
+text-indent: 25px;
+}
+#ymifnmxkul .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#ymifnmxkul div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="5" class="gt_heading gt_title gt_font_normal">Daily Weather</td>
+</tr>
+<tr class="gt_heading even">
+<td colspan="5" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">First 5 Rows</td>
+</tr>
+<tr class="gt_col_headings header">
+<th id="station_id" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">station_id</th>
+<th id="obs_date" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">obs_date</th>
+<th id="prcp" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">prcp</th>
+<th id="tmax" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">tmax</th>
+<th id="tmin" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">tmin</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_right" headers="obs_date">2020-01-01</td>
+<td class="gt_row gt_right" headers="prcp">0.00</td>
+<td class="gt_row gt_right" headers="tmax">41</td>
+<td class="gt_row gt_right" headers="tmin">31</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_right" headers="obs_date">2020-01-02</td>
+<td class="gt_row gt_right" headers="prcp">0.00</td>
+<td class="gt_row gt_right" headers="tmax">50</td>
+<td class="gt_row gt_right" headers="tmin">27</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_right" headers="obs_date">2020-01-03</td>
+<td class="gt_row gt_right" headers="prcp">0.23</td>
+<td class="gt_row gt_right" headers="tmax">46</td>
+<td class="gt_row gt_right" headers="tmin">43</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_right" headers="obs_date">2020-01-04</td>
+<td class="gt_row gt_right" headers="prcp">0.14</td>
+<td class="gt_row gt_right" headers="tmax">50</td>
+<td class="gt_row gt_right" headers="tmin">41</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="station_id">USW00004781</td>
+<td class="gt_row gt_right" headers="obs_date">2020-01-05</td>
+<td class="gt_row gt_right" headers="prcp">0.03</td>
+<td class="gt_row gt_right" headers="tmax">43</td>
+<td class="gt_row gt_right" headers="tmin">33</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
 </div>
 </section>
 <section id="creating-database-schema" class="level4">
 <h4 class="anchored" data-anchor-id="creating-database-schema">Creating Database Schema</h4>
+<p>To create the database schema in PostgreSQL, I started out by dropping the tables if they exist in the database already. This ensures the file runs smoothly.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">EXISTS</span> daily_weather;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -5982,6 +7759,7 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">EXISTS</span> <span class="dt">zone</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>After it was checked that the tables don’t exist, the tables were created in SQL in order from parent to child to avoid errors.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="dt">zone</span> (</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    ptid             <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
@@ -6035,92 +7813,103 @@ Figure 1: Normalized schema for NYISO load and NOAA weather data
 </div>
 </div>
 </section>
-<section id="test-queries" class="level4">
-<h4 class="anchored" data-anchor-id="test-queries">Test Queries</h4>
+<section id="test-query" class="level4">
+<h4 class="anchored" data-anchor-id="test-query">Test Query</h4>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> daily_weather</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> z.nyiso_zone_name,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>       l.load_date,</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>       l.avg_load,</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">AVG</span>(w.tmax) <span class="kw">AS</span> avg_tmax,</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">AVG</span>(w.prcp) <span class="kw">as</span> avg_prcp</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> daily_electricity_load l</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="kw">JOIN</span> <span class="dt">zone</span> z <span class="kw">ON</span> z.ptid <span class="op">=</span> l.ptid</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="kw">JOIN</span> weather_station ws <span class="kw">ON</span> ws.ptid <span class="op">=</span> l.ptid</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="kw">JOIN</span> daily_weather w <span class="kw">ON</span> w.station_id <span class="op">=</span> ws.station_id <span class="kw">AND</span> w.obs_date <span class="op">=</span> l.load_date</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> z.nyiso_zone_name, l.load_date, l.avg_load</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> l.avg_load <span class="kw">DESC</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="kw">LIMIT</span> <span class="dv">10</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Displaying records 1 - 10</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;">station_id</th>
-<th style="text-align: left;">obs_date</th>
-<th style="text-align: right;">prcp</th>
-<th style="text-align: right;">tmax</th>
-<th style="text-align: right;">tmin</th>
+<th style="text-align: left;">nyiso_zone_name</th>
+<th style="text-align: left;">load_date</th>
+<th style="text-align: right;">avg_load</th>
+<th style="text-align: right;">avg_tmax</th>
+<th style="text-align: right;">avg_prcp</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-01</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">31</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2025-06-25</td>
+<td style="text-align: right;">9597.81</td>
+<td style="text-align: right;">97.5</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-02</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">27</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2025-06-24</td>
+<td style="text-align: right;">9432.48</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-03</td>
-<td style="text-align: right;">0.23</td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">43</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2022-08-09</td>
+<td style="text-align: right;">9332.01</td>
+<td style="text-align: right;">97.5</td>
+<td style="text-align: right;">0.040</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-04</td>
-<td style="text-align: right;">0.14</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">41</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2026-07-02</td>
+<td style="text-align: right;">9251.80</td>
+<td style="text-align: right;">102.0</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-05</td>
-<td style="text-align: right;">0.03</td>
-<td style="text-align: right;">43</td>
-<td style="text-align: right;">33</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2025-07-30</td>
+<td style="text-align: right;">9065.50</td>
+<td style="text-align: right;">97.0</td>
+<td style="text-align: right;">0.370</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-06</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2025-07-29</td>
+<td style="text-align: right;">9018.21</td>
+<td style="text-align: right;">98.5</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-07</td>
-<td style="text-align: right;">0.10</td>
-<td style="text-align: right;">43</td>
-<td style="text-align: right;">32</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2022-08-08</td>
+<td style="text-align: right;">8960.66</td>
+<td style="text-align: right;">93.5</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-08</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">27</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2024-07-16</td>
+<td style="text-align: right;">8959.60</td>
+<td style="text-align: right;">95.5</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-09</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">22</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2026-07-03</td>
+<td style="text-align: right;">8903.25</td>
+<td style="text-align: right;">99.5</td>
+<td style="text-align: right;">0.065</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">USW00004781</td>
-<td style="text-align: left;">2020-01-10</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">25</td>
+<td style="text-align: left;">N.Y.C.</td>
+<td style="text-align: left;">2025-06-23</td>
+<td style="text-align: right;">8895.54</td>
+<td style="text-align: right;">95.0</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 </tbody>
 </table>

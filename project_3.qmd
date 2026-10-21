@@ -384,6 +384,7 @@ First, a connection was established to a local database that can be change for r
 ```{r Connecting to PostgreSQL}
 library(DBI)
 library(RPostgres)
+library(gt)
 
 # Change information to your database
 con <- dbConnect(
@@ -398,6 +399,8 @@ con <- dbConnect(
 
 Next, the normalized tables were formed from the cleaned data files in step 1 and 2.
 
+The first normalized table that was created is the zone table that is the crosswalk between the zone names in the weather and electricity data.
+
 ```{r Zone-Normalized-Table}
 zone_crosswalk = data.frame(
   nyiso_zone_name = c("LONGIL", "N.Y.C."),
@@ -409,7 +412,13 @@ zone <- daily_load |>
   left_join(zone_crosswalk, by = "nyiso_zone_name") |>
   select(ptid, nyiso_zone_name, noaa_zone_name) |>
   arrange(ptid)
+
+zone |>
+  gt()|>
+  tab_header(title = "Normalized Zone Table")
 ```
+
+The weather station table was normalized to just contain data describing the different weather stations. The table includes the station ID, station name and the ptid which is the zone ID from the electricity data.
 
 ```{r Weather-Station-Table}
 weather_station <- weather_clean |>
@@ -419,7 +428,13 @@ weather_station <- weather_clean |>
   left_join(zone |> select(ptid, noaa_zone_name), by = "noaa_zone_name") |>
   select(station_id, noaa_station_name, ptid) |>
   arrange(station_id)
+
+weather_station |>
+  gt()|>
+  tab_header(title="Weather Station Normalized Table")
 ```
+
+The daily load table was normalized next to include just the load amount by data and by zone ID.
 
 ```{r daily-load-table}
 daily_electricity_load <- daily_load |>
@@ -427,7 +442,14 @@ daily_electricity_load <- daily_load |>
             load_date = as.Date(Date),
             avg_load = Daily_Average_Load) |>
   arrange(ptid, load_date)
+
+daily_electricity_load |> 
+  head(5) |>
+  gt() |>
+  tab_header(title="Daily Electricity Load", subtitle = "First 5 Rows")
 ```
+
+Lastly, the weather data normalized to only have data depending on the station id
 
 ```{r daily-weather-data}
 daily_weather <- weather_clean |>
@@ -437,9 +459,16 @@ daily_weather <- weather_clean |>
             tmax = TMAX,
             tmin = TMIN) |>
   arrange(station_id, obs_date)
+
+daily_weather |>
+  head(5) |>
+  gt() |>
+  tab_header(title="Daily Weather",subtitle="First 5 Rows")
 ```
 
 #### Creating Database Schema
+
+To create the database schema in PostgreSQL, I started out by dropping the tables if they exist in the database already. This ensures the file runs smoothly.
 
 ```{sql connection = con}
 DROP TABLE IF EXISTS daily_weather;
@@ -456,6 +485,8 @@ DROP TABLE IF EXISTS weather_station;
 ```{sql connection = con}
 DROP TABLE IF EXISTS zone;
 ```
+
+After it was checked that the tables don't exist, the tables were created in SQL in order from parent to child to avoid errors.
 
 ```{sql connection = con}
 CREATE TABLE zone (
@@ -510,10 +541,21 @@ dbWithTransaction(con, {
 })
 ```
 
-#### Test Queries
+#### Test Query
 
 ```{sql connection = con}
-SELECT * FROM daily_weather
+SELECT z.nyiso_zone_name,
+       l.load_date,
+       l.avg_load,
+       AVG(w.tmax) AS avg_tmax,
+       AVG(w.prcp) as avg_prcp
+FROM daily_electricity_load l
+JOIN zone z ON z.ptid = l.ptid
+JOIN weather_station ws ON ws.ptid = l.ptid
+JOIN daily_weather w ON w.station_id = ws.station_id AND w.obs_date = l.load_date
+GROUP BY z.nyiso_zone_name, l.load_date, l.avg_load
+ORDER BY l.avg_load DESC
+LIMIT 10;
 ```
 
 ### Analysis (Member 4)
