@@ -880,7 +880,7 @@ outlier_data %>%
   count(Zone, Outlier_Type)
 ```
 
-#### Outlier Analysis 
+#### Outlier Analysis
 
 Potential outliers in daily average electricity load were identified using the interquartile range (IQR) method, with thresholds calculated separately for New York City and Long Island.
 
@@ -994,7 +994,7 @@ ggplot(correlation_plot,
   theme(legend.position = "none")
 ```
 
-#### Correlation Analysis 
+#### Correlation Analysis
 
 Pearson correlation coefficients were calculated to examine the relationships between heating degree days (HDD), cooling degree days (CDD), precipitation, and daily average electricity load in New York City and Long Island from 2020 through September 2026.
 
