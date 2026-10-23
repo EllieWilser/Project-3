@@ -1,0 +1,303 @@
+---
+title: "Weather and Electricity Demand"
+subtitle: "NYC and Long Island, 2020–2026"
+author: "Energy Team: Bikash Bhowmik, Cecilia De La Fuente Chavez, Ellie Wilser, Zaina Hassan"
+format:
+  revealjs:
+    theme: serif
+    slide-number: true
+    chalkboard: false
+    incremental: false
+    embed-resources: true
+    transition: fade
+    footer: "Project 3 | Energy Team"
+    code-fold: false
+editor: visual
+---
+
+```{=html}
+<style>
+.reveal .mermaid,
+.reveal .cell-output-display {
+  text-align: center;
+}
+.reveal .mermaid svg,
+.reveal .cell-output-display svg {
+  max-height: 1000px;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.align = "center")
+library(tidyverse)
+library(gt)
+
+# ---- Data -------------------------------------------------------------
+# Weather: raw combined NOAA file from the team repo
+weather <- read_csv(
+  "https://raw.githubusercontent.com/EllieWilser/Project-3/refs/heads/main/NOAA_Weather_All_Three_Stations.csv",
+  show_col_types = FALSE
+)
+
+weather_clean <- weather %>%
+  mutate(
+    DATE = as.Date(as.character(DATE), tryFormats = c("%Y-%m-%d", "%m/%d/%Y")),
+    PRCP = as.numeric(PRCP), TMAX = as.numeric(TMAX), TMIN = as.numeric(TMIN)
+  ) %>%
+  filter(DATE >= as.Date("2020-01-01"), DATE <= as.Date("2026-09-30")) %>%
+  distinct() %>%
+  mutate(TAVG = if_else(!is.na(TMAX) & !is.na(TMIN), (TMAX + TMIN) / 2, NA_real_))
+
+# NYISO: daily averages produced by the NYISO step of the report
+# (place nyiso_daily_average_load.csv next to this file)
+daily_load <- read_csv("nyiso_daily_average_load.csv", show_col_types = FALSE)
+
+weather_daily <- weather_clean %>%
+  mutate(Zone = case_when(NYISO_ZONE == "NYC" ~ "NYC",
+                          NYISO_ZONE == "Long Island" ~ "LI")) %>%
+  filter(!is.na(Zone)) %>%
+  group_by(DATE, Zone) %>%
+  summarise(TAVG = mean(TAVG, na.rm = TRUE),
+            PRCP = mean(PRCP, na.rm = TRUE), .groups = "drop") %>%
+  mutate(HDD = pmax(65 - TAVG, 0), CDD = pmax(TAVG - 65, 0))
+
+combined_data <- daily_load %>%
+  rename(DATE = Date, Zone = Name) %>%
+  mutate(Zone = case_when(Zone == "N.Y.C." ~ "NYC", Zone == "LONGIL" ~ "LI")) %>%
+  left_join(weather_daily, by = c("DATE", "Zone")) %>%
+  arrange(DATE, Zone)
+```
+
+## The Question (ELLIE)
+
+**How does weather relate to electricity demand in New York City and Long Island?**
+
+- Combine NYISO electricity load with NOAA weather observations
+- Clean in R, store in a normalized PostgreSQL database, analyze and visualize
+- Look for trends and associations, not causation
+
+## How We Worked (ELLIE)
+
+::::: columns
+::: {.column width="50%"}
+**Team**
+
+- Bikash Bhowmik
+- Cecilia De La Fuente Chavez
+- Ellie Wilser
+- Zaina Hassan
+:::
+
+::: {.column width="50%"}
+**Tools**
+
+- Slack
+- Google Sheets task tracker
+- GitHub repository
+- R, PostgreSQL, Quarto
+:::
+:::::
+
+## Data Sources (ELLIE)
+
+- **NYISO** 5-minute load data (NYC and Long Island zones)
+- **NOAA / NWS** daily weather: temperature and precipitation
+- **Time range:** January 2020 to September 2026
+
+| NYISO Zone           | NOAA Weather Station |
+|----------------------|----------------------|
+| NYC (Zone J)         | LaGuardia Airport    |
+| NYC (Zone J)         | Central Park         |
+| Long Island (Zone K) | Islip Airport        |
+
+##  {background-color="#F0F1EB"}
+
+```{mermaid}
+%%| fig-width: 10
+erDiagram zone ||--o{ weather_station : "has" zone ||--o{ daily_electricity_load : "has" weather_station ||--o{ daily_weather : "records"
+zone {
+    int ptid PK
+    text nyiso_zone_name
+    text noaa_zone_name
+}
+weather_station {
+    text station_id PK
+    text noaa_station_name
+    int ptid FK
+}
+daily_electricity_load {
+    int ptid PK, FK
+    date load_date PK
+    numeric avg_load
+}
+daily_weather {
+    text station_id PK, FK
+    date obs_date PK
+    numeric prcp
+    numeric tmax
+    numeric tmin
+}
+```
+
+## Normalized to 3NF in PostgreSQL (ELLIE)
+
+- **1NF:** atomic values, unique records
+- **2NF:** every non-key column depends on the whole key
+- **3NF:** no transitive dependencies
+- Tables created parent to child, loaded in one transaction with `DBI` / `RPostgres`
+- Test query: the **top 10 highest-load days** all fell on extreme-heat days
+
+## NYISO Load Data (Cecilia)
+
+## NOAA Weather Data (BIKASH)
+
+## Electricity Load Over Time (ZAINA)
+
+```{r}
+#| fig-height: 4.6
+#| fig-width: 10
+ggplot(combined_data, aes(DATE, Daily_Average_Load, color = Zone)) +
+  geom_line(alpha = 0.7, linewidth = 0.4) +
+  labs(x = NULL, y = "Daily average load (MW)", color = "Region") +
+  theme_minimal(base_size = 14)
+```
+
+- Clear **summer peaks** in both regions
+- NYC averages about **5,655 MW** vs. **2,291 MW** for Long Island
+
+## Temperature vs. Load (ZAINA)
+
+```{r}
+#| fig-height: 4.6
+#| fig-width: 10
+ggplot(combined_data, aes(TAVG, Daily_Average_Load)) +
+  geom_point(alpha = 0.25, color = "steelblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkred", linewidth = 1) +
+  facet_wrap(~ Zone, scales = "free_y") +
+  labs(x = "Average daily temperature (°F)", y = "Daily average load (MW)") +
+  theme_minimal(base_size = 14)
+```
+
+**U-shaped:** lowest near 50–60°F, rising in the cold and rising sharply in the heat
+
+## Heating and Cooling Degree Days (ZAINA)
+
+```{r}
+#| fig-height: 4.8
+#| fig-width: 10
+combined_data %>%
+  pivot_longer(c(HDD, CDD), names_to = "Type", values_to = "Degree_Days") %>%
+  filter(Degree_Days > 0) %>%
+  mutate(Bin = floor(Degree_Days / 5) * 5,
+         Type = recode(Type, HDD = "Heating Degree Days", CDD = "Cooling Degree Days")) %>%
+  group_by(Zone, Type, Bin) %>%
+  summarise(Average_Load = mean(Daily_Average_Load), Days = n(), .groups = "drop") %>%
+  filter(Days >= 5) %>%
+  ggplot(aes(Bin, Average_Load)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point(color = "steelblue", size = 2) +
+  facet_grid(Zone ~ Type, scales = "free") +
+  labs(x = "Degree days (grouped in 5s)", y = "Average load (MW)") +
+  theme_minimal(base_size = 14) +
+  theme(strip.text = element_text(face = "bold"))
+```
+
+## Seasonal Demand (ZAINA)
+
+```{r}
+#| fig-height: 4.6
+#| fig-width: 10
+combined_data %>%
+  mutate(Season = case_when(
+    lubridate::month(DATE) %in% c(12, 1, 2) ~ "Winter",
+    lubridate::month(DATE) %in% c(3, 4, 5) ~ "Spring",
+    lubridate::month(DATE) %in% c(6, 7, 8) ~ "Summer",
+    TRUE ~ "Fall"),
+    Season = factor(Season, levels = c("Winter", "Spring", "Summer", "Fall"))) %>%
+  group_by(Zone, Season) %>%
+  summarise(Average_Load = mean(Daily_Average_Load), .groups = "drop") %>%
+  ggplot(aes(Season, Average_Load, fill = Zone)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(x = NULL, y = "Average load (MW)", fill = "Region") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank())
+```
+
+Summer is highest, then winter, fall, spring, in both regions
+
+## Outliers: Hot Days Drive Peaks (ZAINA)
+
+- IQR method, thresholds set separately per region
+- **105** high-load outliers in NYC (4.27%), **108** in Long Island (4.39%)
+- No unusually *low* loads flagged
+- **101 of 105** NYC outliers (96.2%) occurred on days averaging 80°F or more
+- **75 of 108** Long Island outliers (69.4%) did too
+- Kept in the analysis: they look like real demand peaks, not errors
+
+## Precipitation Matters Little (ZAINA)
+
+```{r}
+#| fig-height: 4.4
+#| fig-width: 10
+combined_data %>%
+  mutate(Rain = if_else(PRCP > 0, "Rainy", "Dry")) %>%
+  group_by(Zone, Rain) %>%
+  summarise(Average_Load = mean(Daily_Average_Load), .groups = "drop") %>%
+  ggplot(aes(Rain, Average_Load, fill = Rain)) +
+  geom_col(width = 0.6) +
+  facet_wrap(~ Zone, scales = "free_y") +
+  labs(x = NULL, y = "Average load (MW)") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+Dry and rainy days look nearly the same
+
+## Correlations with Daily Load (ZAINA)
+
+| Weather variable    | Long Island | NYC       |
+|---------------------|-------------|-----------|
+| Cooling degree days | **0.908**   | **0.854** |
+| Heating degree days | -0.332      | -0.251    |
+| Precipitation       | 0.035       | 0.061     |
+
+- Cooling demand has by far the strongest linear link to load
+- Negative HDD correlation reflects the much larger summer peaks, not an absence of winter demand
+
+## Key Takeaways (ZAINA)
+
+- **Heat is the biggest weather signal** for electricity demand in both regions
+- Demand is **U-shaped** in temperature; summer peaks dominate
+- Extreme load days are overwhelmingly **hot days**
+- Precipitation has almost no association
+- NYC runs much higher than Long Island, but the **patterns match**
+
+## Limitations and Next Steps (ZAINA)
+
+::::: columns
+::: {.column width="50%"}
+**Limitations**
+
+- Observational: associations, not causation
+- Only three weather stations
+- 7 missing load dates per zone
+- Rain vs. dry ignores intensity and season
+- Pearson correlation misses nonlinear patterns
+:::
+
+::: {.column width="50%"}
+**Next steps**
+
+- More stations, humidity
+- Holidays, population, economic indicators
+- Statistical modeling of how much variation weather explains
+:::
+:::::
+
+## Thank You (ZAINA) {.center}
+
+Questions?
+
+[github.com/EllieWilser/Project-3](https://github.com/EllieWilser/Project-3)
