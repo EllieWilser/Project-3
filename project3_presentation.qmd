@@ -151,12 +151,6 @@ daily_weather {
 
 ## NYISO Load Data (Cecilia)
 
-**NYISO Electricity Load Data**
-
-January 2020 – September 2026: 6.75 years Historical data collected
-
-2 zones: NYC and Long Island
-
 **What I accomplished:**
 
 - Automated downloading monthly ZIP files containing electricity load data.
@@ -170,6 +164,40 @@ January 2020 – September 2026: 6.75 years Historical data collected
 - Checked for missing dates and exported the final dataset to CSV.
 
 Output: nyiso_daily_average_load.csv
+
+## NYISO Code Base (Cecilia)
+
+1\. `map_dfr()` — Automate and combine
+
+```         
+all_data <- map_dfr(months, function(month) {   
+  # Download and open monthly ZIP   
+  # Read CSV files   
+  # Filter for the selected zones 
+})
+```
+
+- Loops through the months in the study period.
+
+- Processes each month's files and combines the resulting rows into one dataframe.
+
+- Avoids having to download, open, and merge every file manually.
+
+2\. `group_by()` + `summarise()` — Calculate daily averages
+
+```         
+group_by(Date, Name, PTID) |>   
+  summarise(     
+    Daily_Average_Load = mean(Load, na.rm = TRUE),     
+    .groups = "drop"   
+  )
+```
+
+- Groups five-minute observations by date and electricity zone.
+
+- Calculates the average load for each group, ignoring missing load values.
+
+- Produces one daily average per date and zone represented in the data.
 
 ## NOAA Weather Data (BIKASH)
 
