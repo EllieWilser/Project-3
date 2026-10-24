@@ -165,7 +165,7 @@ daily_weather {
 
 Output: nyiso_daily_average_load.csv
 
-## NYISO Code Base (Cecilia)
+## NYISO Code Base 1 (Cecilia)
 
 1\. `map_dfr()` — Automate and combine
 
@@ -182,6 +182,8 @@ all_data <- map_dfr(months, function(month) {
 - Processes each month's files and combines the resulting rows into one dataframe.
 
 - Avoids having to download, open, and merge every file manually.
+
+## NYISO Code Base 2 (Cecilia)
 
 2\. `group_by()` + `summarise()` — Calculate daily averages
 
