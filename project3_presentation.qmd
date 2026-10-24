@@ -74,9 +74,9 @@ combined_data <- daily_load %>%
 
 **How does weather relate to electricity demand in New York City and Long Island?**
 
-- Combine NYISO electricity load with NOAA weather observations
-- Clean in R, store in a normalized PostgreSQL database, analyze and visualize
-- Look for trends and associations, not causation
+-   Combine NYISO electricity load with NOAA weather observations
+-   Clean in R, store in a normalized PostgreSQL database, analyze and visualize
+-   Look for trends and associations, not causation
 
 ## How We Worked (ELLIE)
 
@@ -84,27 +84,27 @@ combined_data <- daily_load %>%
 ::: {.column width="50%"}
 **Team**
 
-- Bikash Bhowmik
-- Cecilia De La Fuente Chavez
-- Ellie Wilser
-- Zaina Hassan
+-   Bikash Bhowmik
+-   Cecilia De La Fuente Chavez
+-   Ellie Wilser
+-   Zaina Hassan
 :::
 
 ::: {.column width="50%"}
 **Tools**
 
-- Slack
-- Google Sheets task tracker
-- GitHub repository
-- R, PostgreSQL, Quarto
+-   Slack
+-   Google Sheets task tracker
+-   GitHub repository
+-   R, PostgreSQL, Quarto
 :::
 :::::
 
 ## Data Sources (ELLIE)
 
-- **NYISO** 5-minute load data (NYC and Long Island zones)
-- **NOAA / NWS** daily weather: temperature and precipitation
-- **Time range:** January 2020 to September 2026
+-   **NYISO** 5-minute load data (NYC and Long Island zones)
+-   **NOAA / NWS** daily weather: temperature and precipitation
+-   **Time range:** January 2020 to September 2026
 
 | NYISO Zone           | NOAA Weather Station |
 |----------------------|----------------------|
@@ -143,25 +143,25 @@ daily_weather {
 
 ## Normalized to 3NF in PostgreSQL (ELLIE)
 
-- **1NF:** atomic values, unique records
-- **2NF:** every non-key column depends on the whole key
-- **3NF:** no transitive dependencies
-- Tables created parent to child, loaded in one transaction with `DBI` / `RPostgres`
-- Test query: the **top 10 highest-load days** all fell on extreme-heat days
+-   **1NF:** atomic values, unique records
+-   **2NF:** every non-key column depends on the whole key
+-   **3NF:** no transitive dependencies
+-   Tables created parent to child, loaded in one transaction with `DBI` / `RPostgres`
+-   Test query: the **top 10 highest-load days** all fell on extreme-heat days
 
 ## NYISO Load Data (Cecilia)
 
 **What I accomplished:**
 
-- Automated downloading monthly ZIP files containing electricity load data.
+-   Automated downloading monthly ZIP files containing electricity load data.
 
-- Extracted and read the CSV files without manually opening each archive.
+-   Extracted and read the CSV files without manually opening each archive.
 
-- Filtered the data and combined the relevant records into one dataframe.
+-   Filtered the data and combined the relevant records into one dataframe.
 
-- Aggregated five-minute observations into daily average electricity load.
+-   Aggregated five-minute observations into daily average electricity load.
 
-- Checked for missing dates and exported the final dataset to CSV.
+-   Checked for missing dates and exported the final dataset to CSV.
 
 Output: nyiso_daily_average_load.csv
 
@@ -177,11 +177,11 @@ all_data <- map_dfr(months, function(month) {
 })
 ```
 
-- Loops through the months in the study period.
+-   Loops through the months in the study period.
 
-- Processes each month's files and combines the resulting rows into one dataframe.
+-   Processes each month's files and combines the resulting rows into one dataframe.
 
-- Avoids having to download, open, and merge every file manually.
+-   Avoids having to download, open, and merge every file manually.
 
 ## NYISO Code Base 2 (Cecilia)
 
@@ -195,11 +195,11 @@ group_by(Date, Name, PTID) |>
   )
 ```
 
-- Groups five-minute observations by date and electricity zone.
+-   Groups five-minute observations by date and electricity zone.
 
-- Calculates the average load for each group, ignoring missing load values.
+-   Calculates the average load for each group, ignoring missing load values.
 
-- Produces one daily average per date and zone represented in the data.
+-   Produces one daily average per date and zone represented in the data.
 
 ## NOAA Weather Data (BIKASH)
 
@@ -214,8 +214,8 @@ ggplot(combined_data, aes(DATE, Daily_Average_Load, color = Zone)) +
   theme_minimal(base_size = 14)
 ```
 
-- Clear **summer peaks** in both regions
-- NYC averages about **5,655 MW** vs. **2,291 MW** for Long Island
+-   Clear **summer peaks** in both regions
+-   NYC averages about **5,655 MW** vs. **2,291 MW** for Long Island
 
 ## Temperature vs. Load (ZAINA)
 
@@ -230,7 +230,7 @@ ggplot(combined_data, aes(TAVG, Daily_Average_Load)) +
   theme_minimal(base_size = 14)
 ```
 
-**U-shaped:** lowest near 50–60°F, rising in the cold and rising sharply in the heat
+**U-shaped:** Electricity load decreases as temperatures approach 55–60°F, then increases sharply as temperatures rise further.
 
 ## Heating and Cooling Degree Days (ZAINA)
 
@@ -254,6 +254,8 @@ combined_data %>%
   theme(strip.text = element_text(face = "bold"))
 ```
 
+Electricity load increases steadily with cooling degree days in both NYC and Long Island, while heating degree days show a weaker pattern. This comparison highlights and helps explain the higher loads observed during summer.
+
 ## Seasonal Demand (ZAINA)
 
 ```{r}
@@ -276,15 +278,6 @@ combined_data %>%
 ```
 
 Summer is highest, then winter, fall, spring, in both regions
-
-## Outliers: Hot Days Drive Peaks (ZAINA)
-
-- IQR method, thresholds set separately per region
-- **105** high-load outliers in NYC (4.27%), **108** in Long Island (4.39%)
-- No unusually *low* loads flagged
-- **101 of 105** NYC outliers (96.2%) occurred on days averaging 80°F or more
-- **75 of 108** Long Island outliers (69.4%) did too
-- Kept in the analysis: they look like real demand peaks, not errors
 
 ## Precipitation Matters Little (ZAINA)
 
@@ -313,16 +306,24 @@ Dry and rainy days look nearly the same
 | Heating degree days | -0.332      | -0.251    |
 | Precipitation       | 0.035       | 0.061     |
 
-- Cooling demand has by far the strongest linear link to load
-- Negative HDD correlation reflects the much larger summer peaks, not an absence of winter demand
+-   Cooling demand has by far the strongest linear link to load
+-   Negative HDD correlation reflects the much larger summer peaks, not an absence of winter demand
 
 ## Key Takeaways (ZAINA)
 
-- **Heat is the biggest weather signal** for electricity demand in both regions
-- Demand is **U-shaped** in temperature; summer peaks dominate
-- Extreme load days are overwhelmingly **hot days**
-- Precipitation has almost no association
-- NYC runs much higher than Long Island, but the **patterns match**
+-   <div>
+
+    Heat is the strongest weather-related indicator of electricity demand.
+
+    </div>
+
+    -   **Temperature:** Demand follows a U-shaped pattern, with sharper increases during hotter conditions.
+
+    -   **Extreme demand:** Most high-load outliers occur on hot days.
+
+    -   **Precipitation:** Very weak association with electricity demand.
+
+    -   **Regional patterns:** NYC has higher overall load, but both regions respond similarly to temperature.
 
 ## Limitations and Next Steps (ZAINA)
 
@@ -330,23 +331,23 @@ Dry and rainy days look nearly the same
 ::: {.column width="50%"}
 **Limitations**
 
-- Observational: associations, not causation
-- Only three weather stations
-- 7 missing load dates per zone
-- Rain vs. dry ignores intensity and season
-- Pearson correlation misses nonlinear patterns
+-   Observational: associations, not causation
+-   Only three weather stations
+-   7 missing load dates per zone
+-   Rain vs. dry ignores intensity and season
+-   Pearson correlation misses nonlinear patterns
 :::
 
 ::: {.column width="50%"}
 **Next steps**
 
-- More stations, humidity
-- Holidays, population, economic indicators
-- Statistical modeling of how much variation weather explains
+-   More stations, humidity
+-   Holidays, population, economic indicators
+-   Statistical modeling of how much variation weather explains
 :::
 :::::
 
-## Thank You (ZAINA) {.center}
+## Thank You {.center}
 
 Questions?
 
