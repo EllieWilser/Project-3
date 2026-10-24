@@ -151,6 +151,26 @@ daily_weather {
 
 ## NYISO Load Data (Cecilia)
 
+**NYISO Electricity Load Data**
+
+January 2020 – September 2026: 6.75 years Historical data collected
+
+2 zones: NYC and Long Island
+
+**What I accomplished:**
+
+- Automated downloading monthly ZIP files containing electricity load data.
+
+- Extracted and read the CSV files without manually opening each archive.
+
+- Filtered the data and combined the relevant records into one dataframe.
+
+- Aggregated five-minute observations into daily average electricity load.
+
+- Checked for missing dates and exported the final dataset to CSV.
+
+Output: nyiso_daily_average_load.csv
+
 ## NOAA Weather Data (BIKASH)
 
 ## Electricity Load Over Time (ZAINA)
