@@ -23,7 +23,7 @@ editor: visual
 }
 .reveal .mermaid svg,
 .reveal .cell-output-display svg {
-  max-height: 800px;
+  max-height: 560px;
 }
 </style>
 ```
@@ -71,7 +71,7 @@ combined_data <- daily_load %>%
 ```
 
 
-## Data Sources (ELLIE)
+## Data Sources (ELLIE) {.smaller}
 
 - **NYISO** 5-minute load data (NYC and Long Island zones)
 - **NOAA / NWS** daily weather: temperature and precipitation
@@ -128,7 +128,7 @@ daily_weather {
 
 Output: nyiso_daily_average_load.csv
 
-## NYISO Code Base 1 (Cecilia)
+## NYISO Code Base 1 (Cecilia) {.smaller}
 
 1\. `map_dfr()` — Automate and combine
 
@@ -146,7 +146,7 @@ all_data <- map_dfr(months, function(month) {
 
 - Avoids having to download, open, and merge every file manually.
 
-## NYISO Code Base 2 (Cecilia)
+## NYISO Code Base 2 (Cecilia) {.smaller}
 
 2\. `group_by()` + `summarise()` — Calculate daily averages
 
@@ -164,7 +164,7 @@ group_by(Date, Name, PTID) |>
 
 - Produces one daily average per date and zone represented in the data.
 
-## NOAA Weather Data Collection (BIKASH)
+## NOAA Weather Data Collection (BIKASH) {.smaller}
 
 **Source:** National Oceanic and Atmospheric Administration (NOAA)
 
@@ -178,7 +178,7 @@ group_by(Date, Name, PTID) |>
 Hello everyone. My name is Bikash Bhowmik, and my contribution to our project focused on NOAA weather data. NOAA stands for the National Oceanic and Atmospheric Administration. Our objective was to examine how temperature and weather conditions relate to electricity demand in New York. We selected three weather stations: LaGuardia Airport, Central Park, and Islip. These stations represent different locations in the New York region and help us understand regional temperature differences. The weather data provides important information for our electricity demand analysis.
 :::
 
-## NOAA Data Cleaning and Preparation (BIKASH)
+## NOAA Data Cleaning and Preparation (BIKASH) {.smaller}
 
 **Weather data processing in R**
 
@@ -217,7 +217,7 @@ The main purpose of using NOAA weather data was to investigate how temperature r
 :::
 
 
-## Electricity Load Over Time (ZAINA)
+## Electricity Load Over Time (ZAINA) {.smaller}
 
 ```{r}
 #| fig-height: 4.6
@@ -231,7 +231,7 @@ ggplot(combined_data, aes(DATE, Daily_Average_Load, color = Zone)) +
 - Clear **summer peaks** in both regions
 - NYC averages about **5,655 MW** vs. **2,291 MW** for Long Island
 
-## Temperature vs. Load (ZAINA)
+## Temperature vs. Load (ZAINA) {.smaller}
 
 ```{r}
 #| fig-height: 4.6
@@ -270,7 +270,7 @@ combined_data %>%
 
 Electricity load increases steadily with cooling degree days in both NYC and Long Island, while heating degree days show a weaker pattern. This comparison highlights and helps explain the higher loads observed during summer.
 
-## Seasonal Demand (ZAINA)
+## Seasonal Demand (ZAINA) {.smaller}
 
 ```{r}
 #| fig-height: 4.6
@@ -293,7 +293,7 @@ combined_data %>%
 
 Summer is highest, then winter, fall, spring, in both regions
 
-## Precipitation Matters Little (ZAINA)
+## Precipitation Matters Little (ZAINA) {.smaller}
 
 ```{r}
 #| fig-height: 4.4
@@ -312,7 +312,7 @@ combined_data %>%
 
 Dry and rainy days look nearly the same
 
-## Correlations with Daily Load (ZAINA)
+## Correlations with Daily Load (ZAINA) {.smaller}
 
 | Weather variable    | Long Island | NYC       |
 |---------------------|-------------|-----------|
@@ -323,7 +323,7 @@ Dry and rainy days look nearly the same
 - Cooling demand has by far the strongest linear link to load
 - Negative HDD correlation reflects the much larger summer peaks, not an absence of winter demand
 
-## Key Takeaways (ZAINA)
+## Key Takeaways (ZAINA) {.smaller}
 
 - ::: {}
   Heat is the strongest weather-related indicator of electricity demand.
