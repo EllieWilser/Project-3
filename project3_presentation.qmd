@@ -25,6 +25,9 @@ editor: visual
 .reveal .cell-output-display svg {
   max-height: 560px;
 }
+.reveal h2 {
+  font-size: 1.4em;
+}
 </style>
 ```
 
@@ -83,7 +86,7 @@ combined_data <- daily_load %>%
 | NYC (Zone J)         | Central Park         |
 | Long Island (Zone K) | Islip Airport        |
 
-##  {background-color="#F0F1EB"}
+## Entity Relationship Diagram
 
 ```{mermaid}
 %%| fig-width: 10
