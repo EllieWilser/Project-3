@@ -23,7 +23,7 @@ editor: visual
 }
 .reveal .mermaid svg,
 .reveal .cell-output-display svg {
-  max-height: 1000px;
+  max-height: 800px;
 }
 </style>
 ```
@@ -112,7 +112,7 @@ daily_weather {
 }
 ```
 
-## NYISO Load Data (Cecilia)
+## NYISO Load Data (Cecilia) {.smaller}
 
 **What I accomplished:**
 
@@ -192,7 +192,7 @@ Hello everyone. My name is Bikash Bhowmik, and my contribution to our project fo
 After collecting the NOAA weather data, we prepared it for analysis using R. We focused on daily temperature observations, checked for missing values, and organized the dates. We also considered Heating Degree Days, or HDD, and Cooling Degree Days, or CDD. Both measurements use 65 degrees Fahrenheit as a reference temperature. HDD measures how far temperatures fall below 65 degrees, while CDD measures how far temperatures rise above 65 degrees. These variables help us understand potential heating and cooling requirements.
 :::
 
-## Weather and Electricity Demand (BIKASH)
+## Weather and Electricity Demand (BIKASH) {.smaller}
 
 ::::: columns
 ::: {.column width="50%"}
@@ -246,7 +246,7 @@ ggplot(combined_data, aes(TAVG, Daily_Average_Load)) +
 
 **U-shaped:** Electricity load decreases as temperatures approach 55–60°F, then increases sharply as temperatures rise further.
 
-## Heating and Cooling Degree Days (ZAINA)
+## Heating and Cooling Degree Days (ZAINA) {.smaller}
 
 ```{r}
 #| fig-height: 4.8
@@ -337,7 +337,7 @@ Dry and rainy days look nearly the same
 
   - **Regional patterns:** NYC has higher overall load, but both regions respond similarly to temperature.
 
-## Limitations and Next Steps (ZAINA)
+## Limitations and Next Steps (ZAINA) {.smaller}
 
 ::::: columns
 ::: {.column width="50%"}
