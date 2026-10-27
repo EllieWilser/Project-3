@@ -12,24 +12,23 @@ format:
     transition: fade
     footer: "Project 3 | Energy Team"
     code-fold: false
+    include-in-header:
+      text: |
+        <style>
+        .reveal .mermaid,
+        .reveal .cell-output-display {
+          text-align: center;
+        }
+        .reveal .mermaid svg,
+        .reveal .cell-output-display svg {
+          max-height: 560px;
+        }
+        .reveal h2 {
+          font-size: 1em;
+        }
+        </style>
 editor: visual
 ---
-
-```{=html}
-<style>
-.reveal .mermaid,
-.reveal .cell-output-display {
-  text-align: center;
-}
-.reveal .mermaid svg,
-.reveal .cell-output-display svg {
-  max-height: 560px;
-}
-.reveal h2 {
-  font-size: 1em;
-}
-</style>
-```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
