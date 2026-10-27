@@ -233,20 +233,30 @@ ggplot(combined_data, aes(DATE, Daily_Average_Load, color = Zone)) +
 - Clear **summer peaks** in both regions
 - NYC averages about **5,655 MW** vs. **2,291 MW** for Long Island
 
-## Temperature vs. Load {.smaller}
+## Seasonal Demand {.smaller}
 
 ```{r}
 #| fig-height: 4.6
 #| fig-width: 10
-ggplot(combined_data, aes(TAVG, Daily_Average_Load)) +
-  geom_point(alpha = 0.25, color = "steelblue") +
-  geom_smooth(method = "loess", se = FALSE, color = "darkred", linewidth = 1) +
-  facet_wrap(~ Zone, scales = "free_y") +
-  labs(x = "Average daily temperature (°F)", y = "Daily average load (MW)") +
-  theme_minimal(base_size = 14)
+combined_data %>%
+  mutate(Season = case_when(
+    lubridate::month(DATE) %in% c(12, 1, 2) ~ "Winter",
+    lubridate::month(DATE) %in% c(3, 4, 5) ~ "Spring",
+    lubridate::month(DATE) %in% c(6, 7, 8) ~ "Summer",
+    TRUE ~ "Fall"),
+    Season = factor(Season, levels = c("Winter", "Spring", "Summer", "Fall"))) %>%
+  group_by(Zone, Season) %>%
+  summarise(Average_Load = mean(Daily_Average_Load), .groups = "drop") %>%
+  ggplot(aes(Season, Average_Load, fill = Zone)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(x = NULL, y = "Average load (MW)", fill = "Region") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank())
 ```
 
-**U-shaped:** Electricity load decreases as temperatures approach 55–60°F, then increases sharply as temperatures rise further.
+Summer is highest, then winter, fall, spring, in both regions
+
+
 
 ## Heating and Cooling Degree Days {.smaller}
 
@@ -272,47 +282,7 @@ combined_data %>%
 
 Electricity load increases steadily with cooling degree days in both NYC and Long Island, while heating degree days show a weaker pattern. This comparison highlights and helps explain the higher loads observed during summer.
 
-## Seasonal Demand {.smaller}
 
-```{r}
-#| fig-height: 4.6
-#| fig-width: 10
-combined_data %>%
-  mutate(Season = case_when(
-    lubridate::month(DATE) %in% c(12, 1, 2) ~ "Winter",
-    lubridate::month(DATE) %in% c(3, 4, 5) ~ "Spring",
-    lubridate::month(DATE) %in% c(6, 7, 8) ~ "Summer",
-    TRUE ~ "Fall"),
-    Season = factor(Season, levels = c("Winter", "Spring", "Summer", "Fall"))) %>%
-  group_by(Zone, Season) %>%
-  summarise(Average_Load = mean(Daily_Average_Load), .groups = "drop") %>%
-  ggplot(aes(Season, Average_Load, fill = Zone)) +
-  geom_col(position = "dodge", width = 0.7) +
-  labs(x = NULL, y = "Average load (MW)", fill = "Region") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank())
-```
-
-Summer is highest, then winter, fall, spring, in both regions
-
-## Precipitation Matters Little {.smaller}
-
-```{r}
-#| fig-height: 4.4
-#| fig-width: 10
-combined_data %>%
-  mutate(Rain = if_else(PRCP > 0, "Rainy", "Dry")) %>%
-  group_by(Zone, Rain) %>%
-  summarise(Average_Load = mean(Daily_Average_Load), .groups = "drop") %>%
-  ggplot(aes(Rain, Average_Load, fill = Rain)) +
-  geom_col(width = 0.6) +
-  facet_wrap(~ Zone, scales = "free_y") +
-  labs(x = NULL, y = "Average load (MW)") +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
-```
-
-Dry and rainy days look nearly the same
 
 ## Correlations with Daily Load {.smaller}
 
