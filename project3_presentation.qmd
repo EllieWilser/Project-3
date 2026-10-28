@@ -72,7 +72,6 @@ combined_data <- daily_load %>%
   arrange(DATE, Zone)
 ```
 
-
 ## Data Sources {.smaller}
 
 - **NYISO** 5-minute load data (NYC and Long Island zones)
@@ -130,7 +129,7 @@ daily_weather {
 
 Output: nyiso_daily_average_load.csv
 
-## NYISO Code Base 1 {.smaller}
+## NYISO Code Base 1
 
 1\. `map_dfr()` — Automate and combine
 
@@ -148,7 +147,7 @@ all_data <- map_dfr(months, function(month) {
 
 - Avoids having to download, open, and merge every file manually.
 
-## NYISO Code Base 2 {.smaller}
+## NYISO Code Base 2
 
 2\. `group_by()` + `summarise()` — Calculate daily averages
 
@@ -218,7 +217,6 @@ After collecting the NOAA weather data, we prepared it for analysis using R. We 
 The main purpose of using NOAA weather data was to investigate how temperature relates to electricity demand. During hot summer days, electricity demand generally increases because people use more air conditioning. During colder periods, electric heating can also increase electricity consumption. Heating and Cooling Degree Days help explain these seasonal patterns. By combining NOAA weather data with NYISO electricity demand data, our group can examine how weather conditions are associated with electricity consumption. Overall, my contribution was preparing the NOAA weather data and identifying temperature-related variables to support our group's analysis.
 :::
 
-
 ## Electricity Load Over Time {.smaller}
 
 ```{r}
@@ -256,8 +254,6 @@ combined_data %>%
 
 Summer is highest, then winter, fall, spring, in both regions
 
-
-
 ## Heating and Cooling Degree Days {.smaller}
 
 ```{r}
@@ -281,8 +277,6 @@ combined_data %>%
 ```
 
 Electricity load increases steadily with cooling degree days in both NYC and Long Island, while heating degree days show a weaker pattern. This comparison highlights and helps explain the higher loads observed during summer.
-
-
 
 ## Correlations with Daily Load {.smaller}
 
@@ -309,7 +303,7 @@ Electricity load increases steadily with cooling degree days in both NYC and Lon
 
   - **Regional patterns:** NYC has higher overall load, but both regions respond similarly to temperature.
 
-## Limitations and Next  Steps {.smaller}
+## Limitations and Next Steps {.smaller}
 
 ::::: columns
 ::: {.column width="50%"}
